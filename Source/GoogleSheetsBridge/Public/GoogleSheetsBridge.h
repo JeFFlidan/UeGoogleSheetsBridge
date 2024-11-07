@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #pragma once
 
@@ -8,8 +8,15 @@
 class FGoogleSheetsBridgeModule : public IModuleInterface
 {
 public:
-
-	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+private:
+	FDelegateHandle AssetMenuExtenderDelegateHandle;
+	UDataAsset* SelectedDataAsset{nullptr};
+	
+	void AddMenuEntry(FMenuBuilder& MenuBuilder);
+	void OpenExplorerToSave();
+	
+	TSharedRef<FExtender> DataAssetContextMenuExtender(const TArray<FAssetData>& AssetDataList);
 };

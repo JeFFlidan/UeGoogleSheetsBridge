@@ -38,7 +38,10 @@ public class GoogleSheetsBridge : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"HTTP"
+				"HTTP",
+				"HttpServer",
+				"EditorSubsystem",
+				"DeveloperSettings"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

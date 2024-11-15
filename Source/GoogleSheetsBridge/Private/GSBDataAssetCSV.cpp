@@ -1,19 +1,11 @@
 // Copyright Kyrylo Zaverukha. All Rights Reserved.
 
-#include "DataAssetCSV.h"
+#include "GSBDataAssetCSV.h"
 #include "GoogleSheetsBridgeLogChannels.h"
 
-FDataAssetExporterCSV::FDataAssetExporterCSV(FString& OutExportText)
-	: ExportedText(OutExportText)
+bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
 {
-}
-
-FDataAssetExporterCSV::~FDataAssetExporterCSV()
-{
-}
-
-bool FDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
-{
+	ExportedText.Reset();
 	DataAsset = InDataAsset;
 	
 	for (TFieldIterator<FProperty> It(DataAsset->GetClass()); It; ++It)
@@ -57,7 +49,7 @@ bool FDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
 	return false;
 }
 
-bool FDataAssetExporterCSV::WriteArrayData(FArrayProperty* ArrayProperty)
+bool FGSBDataAssetExporterCSV::WriteArrayData(FArrayProperty* ArrayProperty)
 {
 	if (!WriteHeader(ArrayProperty->Inner))
 	{
@@ -83,17 +75,17 @@ bool FDataAssetExporterCSV::WriteArrayData(FArrayProperty* ArrayProperty)
 	return true;
 }
 
-bool FDataAssetExporterCSV::WriteMapData(FMapProperty* MapProperty)
+bool FGSBDataAssetExporterCSV::WriteMapData(FMapProperty* MapProperty)
 {
 	return true;
 }
 
-bool FDataAssetExporterCSV::WriteSetData(FSetProperty* SetProperty)
+bool FGSBDataAssetExporterCSV::WriteSetData(FSetProperty* SetProperty)
 {
 	return true;
 }
 
-bool FDataAssetExporterCSV::WriteHeader(FProperty* ElementProperty)
+bool FGSBDataAssetExporterCSV::WriteHeader(FProperty* ElementProperty)
 {
 	if (!FindAllSerializableProperties(ElementProperty))
 	{
@@ -112,7 +104,7 @@ bool FDataAssetExporterCSV::WriteHeader(FProperty* ElementProperty)
 	return true;
 }
 
-void FDataAssetExporterCSV::WritePropertyValue(FProperty* Property, const void* PropertyValue)
+void FGSBDataAssetExporterCSV::WritePropertyValue(FProperty* Property, const void* PropertyValue)
 {
 	FString StrValue;
 	Property->ExportText_Direct(StrValue, PropertyValue, PropertyValue, nullptr, PPF_ExternalEditor);
@@ -123,7 +115,7 @@ void FDataAssetExporterCSV::WritePropertyValue(FProperty* Property, const void* 
 	ExportedText += TEXT(",");
 }
 
-bool FDataAssetExporterCSV::FindAllSerializableProperties(FProperty* ElementProperty)
+bool FGSBDataAssetExporterCSV::FindAllSerializableProperties(FProperty* ElementProperty)
 {
 	SerializableProperties.Reset();
 	
@@ -145,7 +137,7 @@ bool FDataAssetExporterCSV::FindAllSerializableProperties(FProperty* ElementProp
 	return false;
 }
 
-bool FDataAssetExporterCSV::IsCollectionElementPropertyTypeValid(FProperty* Property) const
+bool FGSBDataAssetExporterCSV::IsCollectionElementPropertyTypeValid(FProperty* Property) const
 {
 	if (Property->IsA(FStructProperty::StaticClass())
 		|| Property->IsA(FObjectProperty::StaticClass()))
@@ -156,7 +148,7 @@ bool FDataAssetExporterCSV::IsCollectionElementPropertyTypeValid(FProperty* Prop
 	return false;
 }
 
-bool FDataAssetExporterCSV::IsPropertySerializable(FProperty* Property) const
+bool FGSBDataAssetExporterCSV::IsPropertySerializable(FProperty* Property) const
 {
 	if (Property->IsA(FNumericProperty::StaticClass())
 		|| Property->IsA(FStrProperty::StaticClass()))

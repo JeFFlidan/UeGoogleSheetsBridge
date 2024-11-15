@@ -5,7 +5,29 @@
 #include "Http.h"
 #include "GoogleSheetsApi.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(OnResponse, FString);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnResponse, FString);
+
+struct FGoogleSheetsApiParams_GET
+{
+	const FString& SpreadsheetID;
+	FString SheetName;
+	
+	FGoogleSheetsApiParams_GET(
+		const FString& InSpreadsheetID,
+		const FString& InSheetName);
+
+	FString GetUrl() const;
+};
+
+struct FGoogleSheetsApiParams_POST : FGoogleSheetsApiParams_GET
+{
+	const FString& Content;
+	
+	FGoogleSheetsApiParams_POST(
+		const FString& InSpreadsheetID,
+		const FString& InSheetName,
+		const FString& InContent);
+};
 
 /**
  * 
@@ -16,16 +38,14 @@ class GOOGLESHEETSBRIDGE_API UGoogleSheetsApi : public UObject
 	GENERATED_BODY()
 
 public:
-	OnResponse OnResponseReceived;
-	
-	void SendGetRequest(FString SheetID);
+	FOnResponse OnResponseReceived_GET;
+	FOnResponse OnResponseReceived_POST;
+
+	void SendGetRequest(const FGoogleSheetsApiParams_GET& Params);
+	void SendPostRequest(const FGoogleSheetsApiParams_POST& Params);
 
 private:
-	static const FString ApiBaseUrl;
-	FHttpModule* HttpModule;
-
-	void HandleGetResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void SetRequestHeaders(TSharedRef<IHttpRequest>& Request);
+	void HandleResponseReceived_GET(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void HandleResponseReceived_POST(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	bool IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful);
-	TSharedRef<IHttpRequest> RequestWithRoute(FString Subroute);
 };

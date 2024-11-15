@@ -9,14 +9,20 @@
 /**
  * 
  */
-UCLASS(Config = GoogleSheetsBridgeSettings, DefaultConfig)
+UCLASS(Config = GoogleSheetsBridgeSettings, DefaultConfig, DisplayName = "Google Sheets Bridge")
 class GOOGLESHEETSBRIDGE_API UGoogleSheetsBridgeSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Config, BlueprintReadOnly, Category = "General", meta = (ClampMin = 1, ClampMax = 65535))
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General", meta = (ClampMin = 1, ClampMax = 65535))
 	int32 ServerPort;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
+	FString DefaultSpreadsheetId;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Advanced")
+	FString ApiScriptId;
 
 	UGoogleSheetsBridgeSettings(const FObjectInitializer& Initializer);
 };

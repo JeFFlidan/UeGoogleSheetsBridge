@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "GSBMenuExtender.h"
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
@@ -12,11 +13,5 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	FDelegateHandle AssetMenuExtenderDelegateHandle;
-	UDataAsset* SelectedDataAsset{nullptr};
-	
-	void AddMenuEntry(FMenuBuilder& MenuBuilder);
-	void OpenExplorerToSave();
-	
-	TSharedRef<FExtender> DataAssetContextMenuExtender(const TArray<FAssetData>& AssetDataList);
+	TArray<TUniquePtr<FGSBMenuExtender>> MenuExtenders;
 };

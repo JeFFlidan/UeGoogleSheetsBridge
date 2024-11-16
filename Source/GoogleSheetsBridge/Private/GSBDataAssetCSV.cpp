@@ -3,9 +3,15 @@
 #include "GSBDataAssetCSV.h"
 #include "GoogleSheetsBridgeLogChannels.h"
 
+FGSBDataAssetExporterCSV::FGSBDataAssetExporterCSV(FString& OutExportedText)
+	: ExportedText(OutExportedText)
+{
+	
+}
+
+
 bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
 {
-	ExportedText.Reset();
 	DataAsset = InDataAsset;
 	
 	for (TFieldIterator<FProperty> It(DataAsset->GetClass()); It; ++It)

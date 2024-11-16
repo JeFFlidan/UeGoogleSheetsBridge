@@ -12,8 +12,8 @@ class UDataAsset;
 class GOOGLESHEETSBRIDGE_API FGSBDataAssetExporterCSV
 {
 public:
+	FGSBDataAssetExporterCSV(FString& OutExportedText);
 	bool WriteDataAsset(const UDataAsset* InDataAsset);
-	const FString& GetCSV() const { return ExportedText; }
 
 private:
 	bool WriteArrayData(FArrayProperty* ArrayProperty);
@@ -27,7 +27,7 @@ private:
 	bool IsCollectionElementPropertyTypeValid(FProperty* Property) const;
 	bool IsPropertySerializable(FProperty* Property) const;
 
-	FString ExportedText;
+	FString& ExportedText;
 	const UDataAsset* DataAsset{nullptr};
 	TArray<FProperty*> SerializableProperties;
 };

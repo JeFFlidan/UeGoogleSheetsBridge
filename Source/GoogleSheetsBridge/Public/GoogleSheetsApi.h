@@ -10,23 +10,22 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnResponse, FString);
 struct FGoogleSheetsApiParams_GET
 {
 	const FString& SpreadsheetID;
-	FString SheetName;
+	FName SheetName;
 	
 	FGoogleSheetsApiParams_GET(
 		const FString& InSpreadsheetID,
-		const FString& InSheetName);
+		FName InSheetName);
 
 	FString GetUrl() const;
 };
 
 struct FGoogleSheetsApiParams_POST : FGoogleSheetsApiParams_GET
 {
-	const FString& Content;
+	FString Content;
 	
 	FGoogleSheetsApiParams_POST(
 		const FString& InSpreadsheetID,
-		const FString& InSheetName,
-		const FString& InContent);
+		FName InSheetName);
 };
 
 /**

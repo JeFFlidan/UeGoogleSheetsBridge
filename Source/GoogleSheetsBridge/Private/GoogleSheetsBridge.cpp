@@ -1,17 +1,19 @@
 // Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #include "GoogleSheetsBridge.h"
-#include "GSBMenuExtender_DataTable.h"
-#include "GSBMenuExtender_DataAsset.h"
-#include "GSBMenuExtender_CurveTable.h"
+#include "GSBMenuExtender.h"
 
 #define LOCTEXT_NAMESPACE "FGoogleSheetsBridgeModule"
 
 void FGoogleSheetsBridgeModule::StartupModule()
 {
-	MenuExtenders.Push(MakeUnique<FGSBMenuExtender_DataAsset>());
+	MenuExtenders.Push(MakeUnique<TGSBMenuExtender<UDataAsset>>());
+	MenuExtenders.Last()->AddMenuEntry_ExportToCSV();
+
+	MenuExtenders.Push(MakeUnique<TGSBMenuExtender<UCurveTable>>());
+	MenuExtenders.Push(MakeUnique<TGSBMenuExtender<UDataTable>>());
 	
-	for (TUniquePtr<FGSBMenuExtender>& MenuExtender : MenuExtenders)
+	for (TUniquePtr<FGSBMenuExtenderBase>& MenuExtender : MenuExtenders)
 	{
 		MenuExtender->Initialize();
 	}
@@ -19,7 +21,7 @@ void FGoogleSheetsBridgeModule::StartupModule()
 
 void FGoogleSheetsBridgeModule::ShutdownModule()
 {
-	for (TUniquePtr<FGSBMenuExtender>& MenuExtender : MenuExtenders)
+	for (TUniquePtr<FGSBMenuExtenderBase>& MenuExtender : MenuExtenders)
 	{
 		MenuExtender->Uninitialize();
 	}

@@ -13,5 +13,5 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	TArray<TUniquePtr<FGSBMenuExtender>> MenuExtenders;
+	TArray<TUniquePtr<FGSBMenuExtenderBase>> MenuExtenders;
 };

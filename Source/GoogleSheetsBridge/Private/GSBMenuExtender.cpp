@@ -1,20 +1,25 @@
 ﻿// Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #include "GSBMenuExtender.h"
+#include "GoogleSheetsApi.h"
 #include "GoogleSheetsBridgeSettings.h"
+#include "GoogleSheetsBridgeLogChannels.h"
 
 #include "ContentBrowserModule.h"
 #include "ContentBrowserDelegates.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Engine/DataAsset.h"
+#include "DesktopPlatformModule.h"
 
-void FGSBMenuExtender::Initialize()
+void FGSBMenuExtenderBase::Initialize()
 {
 	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 	TArray<FContentBrowserMenuExtender_SelectedAssets>& AssetMenuExtendersDelegates = ContentBrowserModule.GetAllAssetViewContextMenuExtenders();
-	AssetMenuExtendersDelegates.Add(FContentBrowserMenuExtender_SelectedAssets::CreateRaw(this, &FGSBMenuExtender::ExtendContextMenu));
+	AssetMenuExtendersDelegates.Add(FContentBrowserMenuExtender_SelectedAssets::CreateRaw(this, &FGSBMenuExtenderBase::ExtendContextMenu));
 	MenuExtenderDelegateHandle = AssetMenuExtendersDelegates.Last().GetHandle();
 }
 
-void FGSBMenuExtender::Uninitialize()
+void FGSBMenuExtenderBase::Uninitialize()
 {
 	if (!IsRunningCommandlet() && !IsRunningGame())
 	{
@@ -30,7 +35,7 @@ void FGSBMenuExtender::Uninitialize()
 	}
 }
 
-TSharedRef<FExtender> FGSBMenuExtender::ExtendContextMenu(const TArray<FAssetData>& AssetDataList)
+TSharedRef<FExtender> FGSBMenuExtenderBase::ExtendContextMenu(const TArray<FAssetData>& AssetDataList)
 {
 	if (!SetSelectedAsset(AssetDataList))
 	{
@@ -43,12 +48,82 @@ TSharedRef<FExtender> FGSBMenuExtender::ExtendContextMenu(const TArray<FAssetDat
 		"GetAssetActions",
 		EExtensionHook::After,
 		TSharedPtr<FUICommandList>(),
-		FMenuExtensionDelegate::CreateRaw(this, &FGSBMenuExtender::AddMenuEntries));
+		FMenuExtensionDelegate::CreateRaw(this, &FGSBMenuExtenderBase::AddMenuEntries));
 
 	return MenuExtender.ToSharedRef();
 }
 
-const FString& FGSBMenuExtender::GetSpreadsheetId(UObject* Object) const
+const FString& FGSBMenuExtenderBase::GetSpreadsheetId() const
 {
 	return GetDefault<UGoogleSheetsBridgeSettings>()->DefaultSpreadsheetId;
+}
+
+void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
+{
+	if (bAddMenuEntry_ExportToCSV)
+	{
+		MenuBuilder.AddMenuEntry(
+			FText::FromString("Export to CSV"),
+			FText::FromString("Export to CSV"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::OpenExplorerToSaveCSV))
+		);
+	}
+	
+	MenuBuilder.AddMenuEntry(
+		FText::FromString("Export and Connect to Google Sheets"),
+		FText::FromString("Export and Connect to Google Sheets"),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::ExportToGoogleSheets))
+	);
+}
+
+void FGSBMenuExtenderBase::ExportToGoogleSheets()
+{
+	FGoogleSheetsApiParams_POST Params(GetSpreadsheetId(), SelectedAsset->GetFName());
+	if (ConvertAssetToCsvString(Params.Content))
+	{
+		UGoogleSheetsApi* GoogleSheetsApi = NewObject<UGoogleSheetsApi>();
+		GoogleSheetsApi->OnResponseReceived_POST.AddLambda([this](FString Content)
+		{
+			// Because of bug with bad request response, does not work correctly for now
+			UE_LOG(LogGoogleSheetsBridge, Verbose, TEXT("%s"), *Content);
+		});
+		GoogleSheetsApi->SendPostRequest(Params);
+	}
+	else
+	{
+		UE_LOG(LogGoogleSheetsBridge, Error, TEXT("POST params are invalid."));
+	}
+}
+
+void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()
+{
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+
+	const FString FileTypes = TEXT("Data Table CSV (*.csv)|*.csv");
+
+	TArray<FString> OutFilenames;
+	DesktopPlatform->SaveFileDialog(
+		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
+		TEXT("Export to CSV"),
+		TEXT(""),
+		TEXT("Report.csv"),
+		FileTypes,
+		EFileDialogFlags::None,
+		OutFilenames
+	);
+
+	if (!OutFilenames.IsEmpty())
+	{
+		FString CsvString;
+		if (ConvertAssetToCsvString(CsvString))
+		{
+			FFileHelper::SaveStringToFile(CsvString, *OutFilenames[0]);
+		}
+		else
+		{
+			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Failed to export %s as csv"), *SelectedAsset->GetFName().ToString());
+		}
+	}
 }

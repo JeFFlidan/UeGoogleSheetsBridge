@@ -6,7 +6,7 @@
 
 FGoogleSheetsApiParams_GET::FGoogleSheetsApiParams_GET(
 	const FString& InSpreadsheetID,
-	const FString& InSheetName)
+	FName InSheetName)
 		: SpreadsheetID(InSpreadsheetID), SheetName(InSheetName)
 {
 }
@@ -15,14 +15,13 @@ FString FGoogleSheetsApiParams_GET::GetUrl() const
 {
 	const UGoogleSheetsBridgeSettings* Settings = GetDefault<UGoogleSheetsBridgeSettings>();
 	return FString::Printf(TEXT("https://script.google.com/macros/s/%s/exec?spreadsheetID=%s&sheetName=%s"),
-		*Settings->ApiScriptId, *SpreadsheetID, *SheetName);
+		*Settings->ApiScriptId, *SpreadsheetID, *SheetName.ToString());
 }
 
 FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(
 	const FString& InSpreadsheetID,
-	const FString& InSheetName,
-	const FString& InContent)
-		: FGoogleSheetsApiParams_GET(InSpreadsheetID, InSheetName), Content(InContent)
+	FName InSheetName)
+		: FGoogleSheetsApiParams_GET(InSpreadsheetID, InSheetName)
 {
 }
 

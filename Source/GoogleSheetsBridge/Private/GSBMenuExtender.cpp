@@ -2,7 +2,6 @@
 
 #include "GSBMenuExtender.h"
 #include "GoogleSheetsApi.h"
-#include "GoogleSheetsBridgeSettings.h"
 #include "GoogleSheetsBridgeLogChannels.h"
 
 #include "ContentBrowserModule.h"
@@ -53,26 +52,21 @@ TSharedRef<FExtender> FGSBMenuExtenderBase::ExtendContextMenu(const TArray<FAsse
 	return MenuExtender.ToSharedRef();
 }
 
-const FString& FGSBMenuExtenderBase::GetSpreadsheetId() const
-{
-	return GetDefault<UGoogleSheetsBridgeSettings>()->DefaultSpreadsheetId;
-}
-
 void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 {
 	if (bAddMenuEntry_ExportToCSV)
 	{
 		MenuBuilder.AddMenuEntry(
-			FText::FromString("Export to CSV"),
-			FText::FromString("Export to CSV"),
+			FText::FromString("Export as CSV"),
+			FText::FromString("Export as CSV"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::OpenExplorerToSaveCSV))
 		);
 	}
 	
 	MenuBuilder.AddMenuEntry(
-		FText::FromString("Export and Connect to Google Sheets"),
-		FText::FromString("Export and Connect to Google Sheets"),
+		FText::FromString("Export to Default Google Sheets"),
+		FText::FromString("Export to Default Google Sheets"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::ExportToGoogleSheets))
 	);
@@ -80,8 +74,8 @@ void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 
 void FGSBMenuExtenderBase::ExportToGoogleSheets()
 {
-	FGoogleSheetsApiParams_POST Params(GetSpreadsheetId(), SelectedAsset->GetFName());
-	if (ConvertAssetToCsvString(Params.Content))
+	FGoogleSheetsApiParams_POST Params(SelectedAsset->GetSpreadsheetId(), SelectedAsset->GetFName());
+	if (SelectedAsset->ExportToCSVString(Params.Content))
 	{
 		UGoogleSheetsApi* GoogleSheetsApi = NewObject<UGoogleSheetsApi>();
 		GoogleSheetsApi->OnResponseReceived_POST.AddLambda([this](FString Content)
@@ -117,7 +111,7 @@ void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()
 	if (!OutFilenames.IsEmpty())
 	{
 		FString CsvString;
-		if (ConvertAssetToCsvString(CsvString))
+		if (SelectedAsset->ExportToCSVString(CsvString))
 		{
 			FFileHelper::SaveStringToFile(CsvString, *OutFilenames[0]);
 		}

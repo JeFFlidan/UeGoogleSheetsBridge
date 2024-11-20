@@ -63,6 +63,16 @@ void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 			FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::OpenExplorerToSaveCSV))
 		);
 	}
+
+	if (bAddMenuEntry_ImportFromCSV)
+	{
+		MenuBuilder.AddMenuEntry(
+			FText::FromString("Import from CSV"),
+			FText::FromString("Import from CSV"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::OpenExplorerToImportCSV))
+		);
+	}
 	
 	MenuBuilder.AddMenuEntry(
 		FText::FromString("Export to Default Google Sheets"),
@@ -100,7 +110,7 @@ void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()
 	TArray<FString> OutFilenames;
 	DesktopPlatform->SaveFileDialog(
 		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
-		TEXT("Export to CSV"),
+		TEXT("Export as CSV"),
 		TEXT(""),
 		TEXT("Report.csv"),
 		FileTypes,
@@ -118,6 +128,35 @@ void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()
 		else
 		{
 			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Failed to export %s as csv"), *SelectedAsset->GetFName().ToString());
+		}
+	}
+}
+
+void FGSBMenuExtenderBase::OpenExplorerToImportCSV()
+{
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+
+	const FString FileTypes = TEXT("Data Table CSV (*.csv)|*.csv");
+
+	TArray<FString> OutFilenames;
+	DesktopPlatform->OpenFileDialog(
+		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
+		TEXT("Import from CSV"),
+		TEXT(""),
+		TEXT(""),
+		FileTypes,
+		EFileDialogFlags::None,
+		OutFilenames);
+
+	if (!OutFilenames.IsEmpty())
+	{
+		FString CSVData;
+		FFileHelper::LoadFileToString(CSVData, *OutFilenames[0]);
+		
+		if (!SelectedAsset->ImportFromCSVString(CSVData))
+		{
+			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Failed to import %s from csv %s"),
+				*SelectedAsset->GetFName().ToString(), *OutFilenames[0]);
 		}
 	}
 }

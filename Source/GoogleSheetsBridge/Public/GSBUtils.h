@@ -3,6 +3,8 @@
 #pragma once
 
 #include "GSBDataAssetCSV.h"
+#include "GoogleSheetsBridgeLogChannels.h"
+
 #include "CoreMinimal.h"
 #include "Kismet/DataTableFunctionLibrary.h"
 
@@ -32,5 +34,42 @@ namespace GSB
 	inline bool AssetToCsvString(const UDataTable* Asset, FString& OutString)
 	{
 		return UDataTableFunctionLibrary::ExportDataTableToCSVString(Asset, OutString);
+	}
+
+	template<typename AssetType>
+	bool CSVStringToAsset(AssetType* Asset, const FString& CSVData)
+	{
+		static_assert(!TIsSame<AssetType, AssetType>::Value, "Type is not supported");
+		return false;
+	}
+
+	template<>
+	inline bool CSVStringToAsset(UCurveTable* Asset, const FString& CSVData)
+	{
+		TArray<FString> Errors = Asset->CreateTableFromCSVString(CSVData);
+
+		if (!Errors.IsEmpty())
+		{
+			for (const FString& Error : Errors)
+			{
+				UE_LOG(LogGoogleSheetsBridge, Error, TEXT("%s"), *Error);
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template<>
+	inline bool CSVStringToAsset(UDataAsset* Asset, const FString& CSVData)
+	{
+		return FGSBDataAssetImporterCSV(Asset, CSVData).ReadDataAsset();
+	}
+
+	template<>
+	inline bool CSVStringToAsset(UDataTable* Asset, const FString& CSVData)
+	{
+		return UDataTableFunctionLibrary::FillDataTableFromCSVString(Asset, CSVData);
 	}
 }

@@ -2,19 +2,11 @@
 
 #include "GSBDataAssetCSV.h"
 #include "GoogleSheetsBridgeLogChannels.h"
+#include "Serialization/Csv/CsvParser.h"
 
-FGSBDataAssetExporterCSV::FGSBDataAssetExporterCSV(FString& OutExportedText)
-	: ExportedText(OutExportedText)
+bool GSB::FGSBDataAssetCSV::HandleDataAsset(UClass* DataAssetClass)
 {
-	
-}
-
-
-bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
-{
-	DataAsset = InDataAsset;
-	
-	for (TFieldIterator<FProperty> It(DataAsset->GetClass()); It; ++It)
+	for (TFieldIterator<FProperty> It(DataAssetClass); It; ++It)
 	{
 		FProperty* GeneralProperty = *It;
 
@@ -26,7 +18,7 @@ bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
 				continue;
 			}
 	
-			return WriteArrayData(ArrayProperty);
+			return HandleArrayData(ArrayProperty);
 		}
 
 		if (FMapProperty* MapProperty = CastField<FMapProperty>(GeneralProperty))
@@ -37,7 +29,7 @@ bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
 				continue;
 			}
 
-			return WriteMapData(MapProperty);
+			return HandleMapData(MapProperty);
 		}
 
 		if (FSetProperty* SetProperty = CastField<FSetProperty>(GeneralProperty))
@@ -48,14 +40,71 @@ bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
 				continue;
 			}
 
-			return WriteSetData(SetProperty);
+			return HandleSetData(SetProperty);
 		}
 	}
 
 	return false;
 }
 
-bool FGSBDataAssetExporterCSV::WriteArrayData(FArrayProperty* ArrayProperty)
+bool GSB::FGSBDataAssetCSV::FindAllSerializableProperties(FProperty* ElementProperty)
+{
+	SerializableProperties.Reset();
+
+	if (FStructProperty* StructProperty = CastField<FStructProperty>(ElementProperty))
+	{
+		for (TFieldIterator<FProperty> It(StructProperty->Struct); It; ++It)
+		{
+			FProperty* Property = *It;
+
+			if (IsPropertySerializable(Property))
+			{
+				SerializableProperties.Add(Property);
+			}
+		}
+		
+		return !SerializableProperties.IsEmpty();
+	}
+
+	return false;
+}
+
+bool GSB::FGSBDataAssetCSV::IsCollectionElementPropertyTypeValid(FProperty* Property) const
+{
+	if (Property->IsA(FStructProperty::StaticClass())
+		|| Property->IsA(FObjectProperty::StaticClass()))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool GSB::FGSBDataAssetCSV::IsPropertySerializable(FProperty* Property) const
+{
+	if (Property->IsA(FNumericProperty::StaticClass())
+		|| Property->IsA(FStrProperty::StaticClass()))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+FGSBDataAssetExporterCSV::FGSBDataAssetExporterCSV(FString& OutExportedText)
+	: ExportedText(OutExportedText)
+{
+	
+}
+
+
+bool FGSBDataAssetExporterCSV::WriteDataAsset(const UDataAsset* InDataAsset)
+{
+	DataAsset = InDataAsset;
+	return HandleDataAsset(DataAsset->GetClass());
+}
+
+bool FGSBDataAssetExporterCSV::HandleArrayData(FArrayProperty* ArrayProperty)
 {
 	if (!WriteHeader(ArrayProperty->Inner))
 	{
@@ -67,7 +116,7 @@ bool FGSBDataAssetExporterCSV::WriteArrayData(FArrayProperty* ArrayProperty)
 	for (int32 Index = 0; Index < ArrayHelper.Num(); ++Index)
 	{
 		const void* ElementPtr = ArrayHelper.GetRawPtr(Index);
-		
+
 		for (FProperty* Property : SerializableProperties)
 		{
 			const void* PropertyValue = Property->ContainerPtrToValuePtr<void>(ElementPtr);
@@ -81,12 +130,12 @@ bool FGSBDataAssetExporterCSV::WriteArrayData(FArrayProperty* ArrayProperty)
 	return true;
 }
 
-bool FGSBDataAssetExporterCSV::WriteMapData(FMapProperty* MapProperty)
+bool FGSBDataAssetExporterCSV::HandleMapData(FMapProperty* MapProperty)
 {
 	return true;
 }
 
-bool FGSBDataAssetExporterCSV::WriteSetData(FSetProperty* SetProperty)
+bool FGSBDataAssetExporterCSV::HandleSetData(FSetProperty* SetProperty)
 {
 	return true;
 }
@@ -121,46 +170,82 @@ void FGSBDataAssetExporterCSV::WritePropertyValue(FProperty* Property, const voi
 	ExportedText += TEXT(",");
 }
 
-bool FGSBDataAssetExporterCSV::FindAllSerializableProperties(FProperty* ElementProperty)
+FGSBDataAssetImporterCSV::FGSBDataAssetImporterCSV(UDataAsset* InDataAsset, const FString& InCSVData)
+	: DataAsset(InDataAsset), CSVData(InCSVData)
 {
-	SerializableProperties.Reset();
-	
-	if (FStructProperty* StructProperty = CastField<FStructProperty>(ElementProperty))
-	{
-		for (TFieldIterator<FProperty> It(StructProperty->Struct); It; ++It)
-		{
-			FProperty* Property = *It;
+}
 
-			if (IsPropertySerializable(Property))
+bool FGSBDataAssetImporterCSV::ReadDataAsset()
+{
+	return HandleDataAsset(DataAsset->GetClass());
+}
+
+bool FGSBDataAssetImporterCSV::HandleArrayData(FArrayProperty* ArrayProperty)
+{
+	if (!FindAllSerializableProperties(ArrayProperty->Inner))
+	{
+		return false;
+	}
+	
+	FCsvParser Parser(CSVData);
+	const auto& Rows = Parser.GetRows();
+
+	if (Rows.IsEmpty())
+	{
+		UE_LOG(LogGoogleSheetsBridge, Error, TEXT("CSV data is empty"))
+		return false;
+	}
+	
+	FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(DataAsset));
+
+	if (Rows.Num() - 1 > ArrayHelper.Num())
+	{
+		ArrayHelper.AddValues(Rows.Num() - ArrayHelper.Num() - 1);
+	}
+
+	if (Rows.Num() - 1 < ArrayHelper.Num())
+	{
+		UE_LOG(LogGoogleSheetsBridge, Error, TEXT("CSV data has less rows than a Data Asset %s"), *DataAsset->GetName())
+		return false;
+	}
+
+	for (int32 Index = 0; Index < ArrayHelper.Num(); ++Index)
+	{
+		void* ElementPtr = ArrayHelper.GetRawPtr(Index);
+		const TArray<const TCHAR*>& Cells = Rows[Index + 1];
+
+		if (SerializableProperties.Num() != Cells.Num())
+		{
+			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Row '%d' has more or less cells than properties, is there a malformed string?"), Index)
+			continue;
+		}
+
+		for (int32 CellIdx = 0; CellIdx < Cells.Num(); ++CellIdx)
+		{
+			FProperty* ColumnProperty = SerializableProperties[CellIdx];
+			void* PropertyValue = ColumnProperty->ContainerPtrToValuePtr<void>(ElementPtr);
+			const TCHAR* CellValue = Cells[CellIdx];
+
+			FStringOutputDevice OutputDevice;
+			ColumnProperty->ImportText_Direct(CellValue, PropertyValue, nullptr, PPF_ExternalEditor, &OutputDevice);
+
+			FString Error(OutputDevice);
+			if (!Error.IsEmpty())
 			{
-				SerializableProperties.Add(Property);
+				UE_LOG(LogGoogleSheetsBridge, Error, TEXT("%s"), *Error);
 			}
 		}
-		
-		return !SerializableProperties.IsEmpty();
 	}
-
-	return false;
+	
+	return true;
 }
 
-bool FGSBDataAssetExporterCSV::IsCollectionElementPropertyTypeValid(FProperty* Property) const
+bool FGSBDataAssetImporterCSV::HandleMapData(FMapProperty* MapProperty)
 {
-	if (Property->IsA(FStructProperty::StaticClass())
-		|| Property->IsA(FObjectProperty::StaticClass()))
-	{
-		return true;
-	}
-
-	return false;
+	return FGSBDataAssetCSV::HandleMapData(MapProperty);
 }
 
-bool FGSBDataAssetExporterCSV::IsPropertySerializable(FProperty* Property) const
+bool FGSBDataAssetImporterCSV::HandleSetData(FSetProperty* SetProperty)
 {
-	if (Property->IsA(FNumericProperty::StaticClass())
-		|| Property->IsA(FStrProperty::StaticClass()))
-	{
-		return true;
-	}
-
-	return false;
+	return FGSBDataAssetCSV::HandleSetData(SetProperty);
 }

@@ -9,6 +9,7 @@ void FGoogleSheetsBridgeModule::StartupModule()
 {
 	MenuExtenders.Push(MakeUnique<TGSBMenuExtender<UDataAsset>>());
 	MenuExtenders.Last()->AddMenuEntry_ExportToCSV();
+	MenuExtenders.Last()->AddMenuEntry_ImportFromCSV();
 
 	MenuExtenders.Push(MakeUnique<TGSBMenuExtender<UCurveTable>>());
 	MenuExtenders.Push(MakeUnique<TGSBMenuExtender<UDataTable>>());

@@ -15,16 +15,21 @@ public:
 
 	// Must be called before Initialize
 	void AddMenuEntry_ExportToCSV() { bAddMenuEntry_ExportToCSV = true; }
+	
+	// Must be called before Initialize
+	void AddMenuEntry_ImportFromCSV() { bAddMenuEntry_ImportFromCSV = true; }
 
 protected:
 	FDelegateHandle MenuExtenderDelegateHandle;
 	TUniquePtr<FGSBAssetBase> SelectedAsset;
 
 	bool bAddMenuEntry_ExportToCSV{false};
+	bool bAddMenuEntry_ImportFromCSV{false};
 
 	TSharedRef<FExtender> ExtendContextMenu(const TArray<FAssetData>& AssetDataList);
 	void ExportToGoogleSheets();
 	void OpenExplorerToSaveCSV();
+	void OpenExplorerToImportCSV();
 
 	virtual bool SetSelectedAsset(const TArray<FAssetData>& AssetDataList) { return false; }
 	virtual void AddMenuEntries(FMenuBuilder& MenuBuilder);

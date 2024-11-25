@@ -5,16 +5,15 @@
 #include "Http.h"
 #include "GoogleSheetsApi.generated.h"
 
+class FGSBAsset;
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnResponse, FString);
 
 struct FGoogleSheetsApiParams_GET
 {
-	FString SpreadsheetID;
-	FName SheetName;
+	TSharedRef<const FGSBAsset> Asset;
 	
-	FGoogleSheetsApiParams_GET(
-		const FString& InSpreadsheetID,
-		FName InSheetName);
+	FGoogleSheetsApiParams_GET(TSharedRef<const FGSBAsset> InAsset);
 
 	FString GetUrl() const;
 };
@@ -23,9 +22,7 @@ struct FGoogleSheetsApiParams_POST : FGoogleSheetsApiParams_GET
 {
 	FString Content;
 	
-	FGoogleSheetsApiParams_POST(
-		const FString& InSpreadsheetID,
-		FName InSheetName);
+	FGoogleSheetsApiParams_POST(TSharedRef<const FGSBAsset> InAsset);
 };
 
 /**

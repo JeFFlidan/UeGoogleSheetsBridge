@@ -5,13 +5,13 @@
 #include "GSBUtils.h"
 #include "CoreMinimal.h"
 
-class FGSBAssetBase
+class FGSBAsset
 {
 public:
-	FGSBAssetBase() = default;
-	FGSBAssetBase(UObject* InAsset) : Asset(InAsset) { }
+	FGSBAsset() = default;
+	FGSBAsset(UObject* InAsset) : Asset(InAsset) { }
 	
-	virtual ~FGSBAssetBase() = default;
+	virtual ~FGSBAsset() = default;
 
 	UObject* GetHandle() const { return Asset; }
 	FName GetFName() const { return Asset->GetFName(); }
@@ -19,31 +19,9 @@ public:
 	void SetSpreadsheetId(const FString& SpreadsheetId);
 	FString GetSpreadsheetId() const;
 	
-	virtual bool ExportToCSVString(FString& OutString) { return false; }
-	virtual bool ImportFromCSVString(const FString& InCSVData) { return false; }
+	bool ExportToCSVString(FString& OutString);
+	bool ImportFromCSVString(const FString& InCSVData);
 	
 protected:
 	UObject* Asset{nullptr};
 };
-
-template<typename AssetType>
-class TGSBAsset : public FGSBAssetBase
-{
-public:
-	TGSBAsset(UObject* InAsset) : FGSBAssetBase(InAsset) {}
-
-	virtual bool ExportToCSVString(FString& OutString) override;
-	virtual bool ImportFromCSVString(const FString& InCSVData) override;
-};
-
-template <typename AssetType>
-bool TGSBAsset<AssetType>::ExportToCSVString(FString& OutString)
-{
-	return GSB::AssetToCsvString(CastChecked<AssetType>(Asset), OutString);
-}
-
-template <typename AssetType>
-bool TGSBAsset<AssetType>::ImportFromCSVString(const FString& InCSVData)
-{
-	return GSB::CSVStringToAsset(CastChecked<AssetType>(Asset), InCSVData);
-}

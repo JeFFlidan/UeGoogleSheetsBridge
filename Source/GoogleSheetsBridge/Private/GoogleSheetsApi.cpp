@@ -3,25 +3,22 @@
 #include "GoogleSheetsApi.h"
 #include "GoogleSheetsBridgeSettings.h"
 #include "GoogleSheetsBridgeLogChannels.h"
+#include "GSBAsset.h"
 
-FGoogleSheetsApiParams_GET::FGoogleSheetsApiParams_GET(
-	const FString& InSpreadsheetID,
-	FName InSheetName)
-		: SpreadsheetID(InSpreadsheetID), SheetName(InSheetName)
+FGoogleSheetsApiParams_GET::FGoogleSheetsApiParams_GET(TSharedRef<const FGSBAsset> InAsset)
+	: Asset(InAsset)
 {
 }
 
 FString FGoogleSheetsApiParams_GET::GetUrl() const
 {
 	const UGoogleSheetsBridgeSettings* Settings = GetDefault<UGoogleSheetsBridgeSettings>();
-	return FString::Printf(TEXT("https://script.google.com/macros/s/%s/exec?spreadsheetID=%s&sheetName=%s"),
-		*Settings->ApiScriptId, *SpreadsheetID, *SheetName.ToString());
+	return FString::Printf(TEXT("https://script.google.com/macros/s/%s/exec?spreadsheetID=%s&sheetName=%s&assetPath=%s"),
+		*Settings->ApiScriptId, *Asset->GetSpreadsheetId(), *Asset->GetFName().ToString(), *FSoftObjectPath(Asset->GetHandle()).ToString());
 }
 
-FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(
-	const FString& InSpreadsheetID,
-	FName InSheetName)
-		: FGoogleSheetsApiParams_GET(InSpreadsheetID, InSheetName)
+FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(TSharedRef<const FGSBAsset> InAsset)
+	: FGoogleSheetsApiParams_GET(InAsset)
 {
 }
 
@@ -34,10 +31,10 @@ void UGoogleSheetsApi::SendPostRequest(const FGoogleSheetsApiParams_POST& Params
 	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
 	
 	Request->SetVerb("POST");
-	Request->SetContentAsString(Params.Content);
 	Request->SetURL(Params.GetUrl());
+	Request->SetContentAsString(Params.Content);
 	
-	Request->SetHeader(TEXT("Content-Type"), TEXT("text/plain; charset=utf-8"));
+	Request->SetHeader(TEXT("Content-Type"), TEXT("text/csv; charset=utf-8"));
 	Request->SetHeader(TEXT("Accepts"), TEXT("text/plain"));
 	
 	Request->OnProcessRequestComplete().BindUObject(this, &ThisClass::HandleResponseReceived_POST);

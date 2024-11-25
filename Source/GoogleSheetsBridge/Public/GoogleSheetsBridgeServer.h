@@ -37,4 +37,11 @@ private:
 
 	bool RequestGET(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
 	bool RequestPOST(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
+	bool RequestOPTIONS(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
+	void SendResponse(
+		const FHttpServerRequest& Request,
+		const FHttpResultCallback& OnComplete,
+		EHttpServerResponseCodes ResponseCode = EHttpServerResponseCodes::Ok,
+		const FString& ErrorMessage = "Error");
+	void SetCORSHeaders(const FHttpServerRequest& Request, FHttpServerResponse& Response);
 };

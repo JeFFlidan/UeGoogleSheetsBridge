@@ -84,7 +84,7 @@ void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 
 void FGSBMenuExtenderBase::ExportToGoogleSheets()
 {
-	FGoogleSheetsApiParams_POST Params(SelectedAsset->GetSpreadsheetId(), SelectedAsset->GetFName());
+	FGoogleSheetsApiParams_POST Params(SelectedAsset.ToSharedRef());
 	if (SelectedAsset->ExportToCSVString(Params.Content))
 	{
 		UGoogleSheetsApi* GoogleSheetsApi = NewObject<UGoogleSheetsApi>();

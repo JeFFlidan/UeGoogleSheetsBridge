@@ -84,16 +84,16 @@ void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 
 void FGSBMenuExtenderBase::ExportToGoogleSheets()
 {
-	FGoogleSheetsApiParams_POST Params(SelectedAsset.ToSharedRef());
-	if (SelectedAsset->ExportToCSVString(Params.Content))
+	FGoogleSheetsApiParams_POST Params(SelectedAsset);
+	if (SelectedAsset.ExportToCSVString(Params.Content))
 	{
-		UGoogleSheetsApi* GoogleSheetsApi = NewObject<UGoogleSheetsApi>();
-		GoogleSheetsApi->OnResponseReceived_POST.AddLambda([this](FString Content)
+		FOnResponse OnResponse;
+		OnResponse.BindLambda([this](FString Content)
 		{
 			// Because of bug with bad request response, does not work correctly for now
 			UE_LOG(LogGoogleSheetsBridge, Verbose, TEXT("%s"), *Content);
 		});
-		GoogleSheetsApi->SendPostRequest(Params);
+		FGoogleSheetsApi::SendPostRequest(Params, OnResponse);
 	}
 	else
 	{
@@ -106,7 +106,7 @@ void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
 
 	const FString FileTypes = TEXT("Data Table CSV (*.csv)|*.csv");
-
+	
 	TArray<FString> OutFilenames;
 	DesktopPlatform->SaveFileDialog(
 		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
@@ -121,13 +121,13 @@ void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()
 	if (!OutFilenames.IsEmpty())
 	{
 		FString CsvString;
-		if (SelectedAsset->ExportToCSVString(CsvString))
+		if (SelectedAsset.ExportToCSVString(CsvString))
 		{
 			FFileHelper::SaveStringToFile(CsvString, *OutFilenames[0]);
 		}
 		else
 		{
-			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Failed to export %s as csv"), *SelectedAsset->GetFName().ToString());
+			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Failed to export %s as csv"), *SelectedAsset.GetFName().ToString());
 		}
 	}
 }
@@ -153,10 +153,10 @@ void FGSBMenuExtenderBase::OpenExplorerToImportCSV()
 		FString CSVData;
 		FFileHelper::LoadFileToString(CSVData, *OutFilenames[0]);
 		
-		if (!SelectedAsset->ImportFromCSVString(CSVData))
+		if (!SelectedAsset.ImportFromCSVString(CSVData))
 		{
 			UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Failed to import %s from csv %s"),
-				*SelectedAsset->GetFName().ToString(), *OutFilenames[0]);
+				*SelectedAsset.GetFName().ToString(), *OutFilenames[0]);
 		}
 	}
 }

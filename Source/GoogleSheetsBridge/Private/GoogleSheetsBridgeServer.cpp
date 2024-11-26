@@ -1,7 +1,8 @@
 // Copyright Kyrylo Zaverukha. All Rights Reserved.
 
-#include "GSBAsset.h"
 #include "GoogleSheetsBridgeServer.h"
+#include "GSBAsset.h"
+
 #include "GoogleSheetsBridgeSettings.h"
 #include "GoogleSheetsBridgeLogChannels.h"
 
@@ -63,6 +64,10 @@ void UGoogleSheetsBridgeServer::StopServer()
 	HttpServerModule.StopAllListeners();
 }
 
+void UGoogleSheetsBridgeServer::SyncAssetsWithGoogleSheets()
+{
+}
+
 bool UGoogleSheetsBridgeServer::RequestGET(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
 {
 	UE_LOG(LogGoogleSheetsBridge, Display, TEXT("GET request is successful."));
@@ -84,6 +89,7 @@ bool UGoogleSheetsBridgeServer::RequestPOST(const FHttpServerRequest& Request, c
 	}
 
 	FGSBAsset Asset(LoadObject<UObject>(nullptr, **AssetPath));
+	
 	if (!Asset.ImportFromCSVString(CSVData))
 	{
 		FString ErrorMessage = FString::Printf(TEXT("Failed to import asset %s from csv string %s"),

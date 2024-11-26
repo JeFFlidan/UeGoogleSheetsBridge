@@ -7,6 +7,8 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/DataTableFunctionLibrary.h"
+#include "DataTableEditorUtils.h"
+#include "CurveTableEditorUtils.h"
 
 namespace GSB
 {
@@ -58,6 +60,8 @@ namespace GSB
 			return false;
 		}
 
+		FCurveTableEditorUtils::BroadcastPostChange(Asset, FCurveTableEditorUtils::ECurveTableChangeInfo::RowList);
+
 		return true;
 	}
 
@@ -70,6 +74,8 @@ namespace GSB
 	template<>
 	inline bool CSVStringToAsset(UDataTable* Asset, const FString& CSVData)
 	{
-		return UDataTableFunctionLibrary::FillDataTableFromCSVString(Asset, CSVData);
+		bool bResult = UDataTableFunctionLibrary::FillDataTableFromCSVString(Asset, CSVData);
+		FDataTableEditorUtils::BroadcastPostChange(Asset, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
+		return bResult;
 	}
 }

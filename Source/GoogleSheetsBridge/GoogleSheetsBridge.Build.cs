@@ -42,7 +42,8 @@ public class GoogleSheetsBridge : ModuleRules
 				"HTTPServer",
 				"EditorSubsystem",
 				"DeveloperSettings",
-				"EditorScriptingUtilities"
+				"EditorScriptingUtilities",
+				"UnrealEd"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

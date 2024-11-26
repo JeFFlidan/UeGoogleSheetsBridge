@@ -35,6 +35,8 @@ private:
 	void StartServer();
 	void StopServer();
 
+	void SyncAssetsWithGoogleSheets();
+
 	bool RequestGET(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
 	bool RequestPOST(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
 	bool RequestOPTIONS(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);

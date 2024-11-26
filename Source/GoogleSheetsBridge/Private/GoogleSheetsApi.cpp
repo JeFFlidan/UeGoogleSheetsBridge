@@ -5,7 +5,7 @@
 #include "GoogleSheetsBridgeLogChannels.h"
 #include "GSBAsset.h"
 
-FGoogleSheetsApiParams_GET::FGoogleSheetsApiParams_GET(TSharedRef<const FGSBAsset> InAsset)
+FGoogleSheetsApiParams_GET::FGoogleSheetsApiParams_GET(FGSBAsset InAsset)
 	: Asset(InAsset)
 {
 }
@@ -14,19 +14,27 @@ FString FGoogleSheetsApiParams_GET::GetUrl() const
 {
 	const UGoogleSheetsBridgeSettings* Settings = GetDefault<UGoogleSheetsBridgeSettings>();
 	return FString::Printf(TEXT("https://script.google.com/macros/s/%s/exec?spreadsheetID=%s&sheetName=%s&assetPath=%s"),
-		*Settings->ApiScriptId, *Asset->GetSpreadsheetId(), *Asset->GetFName().ToString(), *FSoftObjectPath(Asset->GetHandle()).ToString());
+		*Settings->ApiScriptId, *Asset.FindOrAddSpreadsheetId(), *Asset.GetFName().ToString(), *FSoftObjectPath(Asset.GetHandle()).ToString());
 }
 
-FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(TSharedRef<const FGSBAsset> InAsset)
+FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(FGSBAsset InAsset)
 	: FGoogleSheetsApiParams_GET(InAsset)
 {
 }
 
-void UGoogleSheetsApi::SendGetRequest(const FGoogleSheetsApiParams_GET& Params)
+void FGoogleSheetsApi::SendGetRequest(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived)
 {
+	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
+
+	Request->SetVerb("GET");
+	Request->SetURL(Params.GetUrl());
+
+	BindResponseDelegate(Request, OnResponseReceived);
+	
+	Request->ProcessRequest();
 }
 
-void UGoogleSheetsApi::SendPostRequest(const FGoogleSheetsApiParams_POST& Params)
+void FGoogleSheetsApi::SendPostRequest(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived)
 {
 	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
 	
@@ -37,31 +45,12 @@ void UGoogleSheetsApi::SendPostRequest(const FGoogleSheetsApiParams_POST& Params
 	Request->SetHeader(TEXT("Content-Type"), TEXT("text/csv; charset=utf-8"));
 	Request->SetHeader(TEXT("Accepts"), TEXT("text/plain"));
 	
-	Request->OnProcessRequestComplete().BindUObject(this, &ThisClass::HandleResponseReceived_POST);
+	BindResponseDelegate(Request, OnResponseReceived);
+	
 	Request->ProcessRequest();
 }
 
-void UGoogleSheetsApi::HandleResponseReceived_GET(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (!IsResponseValid(Response, bWasSuccessful))
-	{
-		return;
-	}
-
-	OnResponseReceived_GET.Broadcast(Response->GetContentAsString());
-}
-
-void UGoogleSheetsApi::HandleResponseReceived_POST(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
-{
-	if (!IsResponseValid(Response, bWasSuccessful))
-	{
-		return;
-	}
-
-	OnResponseReceived_POST.Broadcast(Response->GetContentAsString());
-}
-
-bool UGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful)
+bool FGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	if (!bWasSuccessful)
 	{
@@ -84,4 +73,18 @@ bool UGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSucce
 
 	UE_LOG(LogGoogleSheetsBridge, Error, TEXT("Http Response returned error code: %d. Error message: %s"), Response->GetResponseCode(), *Response->GetContentAsString());
 	return false;
+}
+
+void FGoogleSheetsApi::BindResponseDelegate(TSharedRef<IHttpRequest> Request, FOnResponse OnResponseReceived)
+{
+	Request->OnProcessRequestComplete().BindLambda([OnResponseReceived]
+		(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+	{
+		if (!IsResponseValid(Response, bWasSuccessful))
+		{
+			return;
+		}
+
+		OnResponseReceived.Execute(Response->GetContentAsString());
+	});
 }

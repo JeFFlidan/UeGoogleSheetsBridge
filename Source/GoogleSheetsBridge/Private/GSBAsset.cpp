@@ -13,7 +13,7 @@ void FGSBAsset::SetSpreadsheetId(const FString& SpreadsheetId)
 	UEditorAssetLibrary::SetMetadataTag(Asset, METADATA_TAG_SPREADSHEET_ID, SpreadsheetId);
 }
 
-FString FGSBAsset::GetSpreadsheetId() const
+FString FGSBAsset::FindOrAddSpreadsheetId() const
 {
 	check(Asset);
 
@@ -27,6 +27,13 @@ FString FGSBAsset::GetSpreadsheetId() const
 	}
 
 	return Value;
+}
+
+FString FGSBAsset::FindSpreadsheetId() const
+{
+	check(Asset);
+
+	return UEditorAssetLibrary::GetMetadataTag(Asset, METADATA_TAG_SPREADSHEET_ID);
 }
 
 bool FGSBAsset::ExportToCSVString(FString& OutString)
@@ -51,9 +58,9 @@ bool FGSBAsset::ExportToCSVString(FString& OutString)
 
 bool FGSBAsset::ImportFromCSVString(const FString& InCSVData)
 {
-	if (Asset->GetClass()->IsChildOf<UDataTable>())
+	if (UDataTable* DataTable = Cast<UDataTable>(Asset))
 	{
-		return GSB::CSVStringToAsset(CastChecked<UDataTable>(Asset), InCSVData);
+		return GSB::CSVStringToAsset(DataTable, InCSVData);
 	}
 
 	if (Asset->GetClass()->IsChildOf<UCurveTable>())

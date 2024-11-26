@@ -21,7 +21,7 @@ public:
 
 protected:
 	FDelegateHandle MenuExtenderDelegateHandle;
-	TSharedPtr<FGSBAsset> SelectedAsset;
+	FGSBAsset SelectedAsset;
 
 	bool bAddMenuEntry_ExportToCSV{false};
 	bool bAddMenuEntry_ImportFromCSV{false};
@@ -48,7 +48,7 @@ bool TGSBMenuExtender<AssetType>::SetSelectedAsset(const TArray<FAssetData>& Ass
 	if (AssetDataList.Num() != 1 || !AssetDataList[0].GetClass()->IsChildOf(AssetType::StaticClass()))
 		return false;
 
-	SelectedAsset = MakeShared<FGSBAsset>(AssetDataList[0].GetAsset());
+	SelectedAsset = FGSBAsset(AssetDataList[0].GetAsset());
 	
 	return true;
 }

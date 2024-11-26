@@ -2,18 +2,16 @@
 
 #pragma once
 
+#include "GSBAsset.h"
 #include "Http.h"
-#include "GoogleSheetsApi.generated.h"
 
-class FGSBAsset;
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnResponse, FString);
+DECLARE_DELEGATE_OneParam(FOnResponse, FString);
 
 struct FGoogleSheetsApiParams_GET
 {
-	TSharedRef<const FGSBAsset> Asset;
+	FGSBAsset Asset;
 	
-	FGoogleSheetsApiParams_GET(TSharedRef<const FGSBAsset> InAsset);
+	FGoogleSheetsApiParams_GET(FGSBAsset InAsset);
 
 	FString GetUrl() const;
 };
@@ -22,26 +20,16 @@ struct FGoogleSheetsApiParams_POST : FGoogleSheetsApiParams_GET
 {
 	FString Content;
 	
-	FGoogleSheetsApiParams_POST(TSharedRef<const FGSBAsset> InAsset);
+	FGoogleSheetsApiParams_POST(FGSBAsset InAsset);
 };
 
-/**
- * 
- */
-UCLASS()
-class GOOGLESHEETSBRIDGE_API UGoogleSheetsApi : public UObject
+class GOOGLESHEETSBRIDGE_API FGoogleSheetsApi
 {
-	GENERATED_BODY()
-
 public:
-	FOnResponse OnResponseReceived_GET;
-	FOnResponse OnResponseReceived_POST;
-
-	void SendGetRequest(const FGoogleSheetsApiParams_GET& Params);
-	void SendPostRequest(const FGoogleSheetsApiParams_POST& Params);
+	static void SendGetRequest(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived);
+	static void SendPostRequest(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived);
 
 private:
-	void HandleResponseReceived_GET(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	void HandleResponseReceived_POST(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
-	bool IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful);
+	static bool IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful);
+	static void BindResponseDelegate(TSharedRef<IHttpRequest> Request, FOnResponse OnResponseReceived);
 };

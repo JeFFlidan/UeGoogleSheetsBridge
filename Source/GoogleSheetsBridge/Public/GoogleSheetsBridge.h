@@ -14,4 +14,6 @@ public:
 
 private:
 	TArray<TUniquePtr<FGSBMenuExtenderBase>> MenuExtenders;
+
+	void SyncAssetsWithGoogleSheets(UClass* Class);
 };

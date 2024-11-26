@@ -11,13 +11,14 @@ public:
 	FGSBAsset() = default;
 	FGSBAsset(UObject* InAsset) : Asset(InAsset) { }
 	
-	virtual ~FGSBAsset() = default;
+	~FGSBAsset() = default;
 
 	UObject* GetHandle() const { return Asset; }
 	FName GetFName() const { return Asset->GetFName(); }
 	
 	void SetSpreadsheetId(const FString& SpreadsheetId);
-	FString GetSpreadsheetId() const;
+	FString FindOrAddSpreadsheetId() const;
+	FString FindSpreadsheetId() const;
 	
 	bool ExportToCSVString(FString& OutString);
 	bool ImportFromCSVString(const FString& InCSVData);

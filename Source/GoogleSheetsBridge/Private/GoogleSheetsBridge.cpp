@@ -3,6 +3,7 @@
 #include "GoogleSheetsBridge.h"
 #include "GoogleSheetsApi.h"
 #include "GSBMenuExtender.h"
+#include "GSBToolBarExtender.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 
@@ -21,6 +22,8 @@ void FGoogleSheetsBridgeModule::StartupModule()
 	{
 		MenuExtender->Initialize();
 	}
+
+	FGSBToolBarExtender::Initialize();
 
 	SyncAssetsWithGoogleSheets(UDataAsset::StaticClass());
 	SyncAssetsWithGoogleSheets(UDataTable::StaticClass());
@@ -57,23 +60,8 @@ void FGoogleSheetsBridgeModule::SyncAssetsWithGoogleSheets(UClass* Class)
 			}
 
 			FGoogleSheetsApiParams_GET Params(Asset);
-			
-			FOnResponse OnResponse;
-			OnResponse.BindLambda([Asset](FString Content) mutable
-			{
-				if (Content.IsEmpty())
-				{
-					return;
-				}
-				
-				if (!Asset.ImportFromCSVString(Content))
-				{
-					UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Failed to import %s from CSV %s"),
-						*Asset.GetFName().ToString(), *Content);
-				}
-			});
 
-			FGoogleSheetsApi::SendGetRequest(Params, OnResponse);
+			FGoogleSheetsApi::SendRequest_GET(Params, FGoogleSheetsApi::OnResponse_GET(Asset));
 		}
 	});
 }

@@ -93,7 +93,7 @@ void FGSBMenuExtenderBase::ExportToGoogleSheets()
 			// Because of bug with bad request response, does not work correctly for now
 			UE_LOG(LogGoogleSheetsBridge, Verbose, TEXT("%s"), *Content);
 		});
-		FGoogleSheetsApi::SendPostRequest(Params, OnResponse);
+		FGoogleSheetsApi::SendRequest_POST(Params, OnResponse);
 	}
 	else
 	{

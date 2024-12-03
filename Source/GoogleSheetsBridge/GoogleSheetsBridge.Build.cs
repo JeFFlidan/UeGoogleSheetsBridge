@@ -43,7 +43,10 @@ public class GoogleSheetsBridge : ModuleRules
 				"EditorSubsystem",
 				"DeveloperSettings",
 				"EditorScriptingUtilities",
-				"UnrealEd"
+				"UnrealEd",
+				"DataTableEditor",
+				"CurveTableEditor",
+				"AssetManagerEditor"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

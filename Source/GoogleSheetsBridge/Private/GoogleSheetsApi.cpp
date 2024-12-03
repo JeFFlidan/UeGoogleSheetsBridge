@@ -22,7 +22,7 @@ FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(FGSBAsset InAsset)
 {
 }
 
-void FGoogleSheetsApi::SendGetRequest(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived)
+void FGoogleSheetsApi::SendRequest_GET(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived)
 {
 	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
 
@@ -34,7 +34,7 @@ void FGoogleSheetsApi::SendGetRequest(const FGoogleSheetsApiParams_GET& Params, 
 	Request->ProcessRequest();
 }
 
-void FGoogleSheetsApi::SendPostRequest(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived)
+void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived)
 {
 	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
 	
@@ -48,6 +48,26 @@ void FGoogleSheetsApi::SendPostRequest(const FGoogleSheetsApiParams_POST& Params
 	BindResponseDelegate(Request, OnResponseReceived);
 	
 	Request->ProcessRequest();
+}
+
+FOnResponse FGoogleSheetsApi::OnResponse_GET(FGSBAsset Asset)
+{
+	FOnResponse OnResponse;
+	OnResponse.BindLambda([Asset](FString Content) mutable
+	{
+		if (Content.IsEmpty())
+		{
+			return;
+		}
+				
+		if (!Asset.ImportFromCSVString(Content))
+		{
+			UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Failed to import %s from CSV %s"),
+				*Asset.GetFName().ToString(), *Content);
+		}
+	});
+
+	return OnResponse;
 }
 
 bool FGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful)

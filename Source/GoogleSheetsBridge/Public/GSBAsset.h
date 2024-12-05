@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "GSBUtils.h"
 #include "CoreMinimal.h"
 
 class FGSBAsset

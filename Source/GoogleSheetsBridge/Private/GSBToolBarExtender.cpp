@@ -1,8 +1,9 @@
 ﻿// Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #include "GSBToolBarExtender.h"
-#include "GoogleSheetsApi.h"
 #include "GoogleSheetsBridgeLogChannels.h"
+#include "GSBUtils.h"
+#include "GSBConstants.h"
 
 #include "Editor.h"
 
@@ -20,28 +21,65 @@ bool IsAssetClassValid(UClass* AssetClass)
 
 void SyncWithGoogleSheets(UObject* Asset)
 {
-	FGoogleSheetsApiParams_GET Params(Asset);
-	FGoogleSheetsApi::SendRequest_GET(Params, FGoogleSheetsApi::OnResponse_GET(Asset));
+	GSB::GenericRequest_GET(Asset);
+}
+
+void ExportToDefaultSpreadsheet(UObject* Asset)
+{
+	GSB::GenericRequest_POST(Asset);
+}
+
+void ExportToCustomSpreadsheet(UObject* Asset)
+{
+	GSB::CreateExportWindow(Asset);
 }
 
 TSharedRef<FExtender> GetToolBarExtender(UObject* Asset)
 {
 	TSharedRef<FExtender> ToolBarExtender = MakeShared<FExtender>();
+	
 	ToolBarExtender->AddToolBarExtension(
 		"Asset",
 		EExtensionHook::After,
 		nullptr,
 		FToolBarExtensionDelegate::CreateLambda([Asset](FToolBarBuilder& ToolBarBuilder)
 		{
+			ToolBarBuilder.AddSeparator();
 			ToolBarBuilder.AddToolBarButton(
 				FUIAction(FExecuteAction::CreateLambda([Asset]
 				{
 					SyncWithGoogleSheets(Asset);
+				}), FCanExecuteAction::CreateLambda([Asset]()->bool
+				{
+					return GSB::IsSyncButtonExecutable(Asset);
 				})),
 				NAME_None,
-				FText::FromString("Sync with Google Sheets"),
-				FText::FromString("Sync with Google Sheets"),
-				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Refresh"));
+				FText::FromString(GSB::Constants::SyncWithButtonName),
+				FText::FromString(GSB::Constants::SyncWithTooltip),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Refresh")
+			);
+
+			ToolBarBuilder.AddToolBarButton(
+				FUIAction(FExecuteAction::CreateLambda([Asset]
+				{
+					ExportToDefaultSpreadsheet(Asset);
+				})),
+				NAME_None,
+				FText::FromString(GSB::Constants::ExportToDefaultButtonName),
+				FText::FromString(GSB::Constants::ExportToDefaultTooltip),
+				FSlateIcon()
+			);
+
+			ToolBarBuilder.AddToolBarButton(
+				FUIAction(FExecuteAction::CreateLambda([Asset]
+				{
+					ExportToCustomSpreadsheet(Asset);
+				})),
+				NAME_None,
+				FText::FromString(GSB::Constants::ExportToCustomButtonName),
+				FText::FromString(GSB::Constants::ExportToCustomTooltip),
+				FSlateIcon()
+			);
 		})
 	);
 

@@ -3,12 +3,15 @@
 #pragma once
 
 #include "GSBDataAssetCSV.h"
+#include "GSBAsset.h"
 #include "GoogleSheetsBridgeLogChannels.h"
 
 #include "CoreMinimal.h"
 #include "Kismet/DataTableFunctionLibrary.h"
 #include "DataTableEditorUtils.h"
 #include "CurveTableEditorUtils.h"
+
+class SWindow;
 
 namespace GSB
 {
@@ -78,4 +81,13 @@ namespace GSB
 		FDataTableEditorUtils::BroadcastPostChange(Asset, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
 		return bResult;
 	}
+
+	inline bool IsSyncButtonExecutable(FGSBAsset Asset)
+	{
+		return !Asset.FindSpreadsheetId().IsEmpty();
+	}
+
+	void GenericRequest_GET(FGSBAsset Asset);
+	void GenericRequest_POST(FGSBAsset Asset);
+	void CreateExportWindow(FGSBAsset Asset);
 }

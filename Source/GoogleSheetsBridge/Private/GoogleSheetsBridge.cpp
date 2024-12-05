@@ -4,6 +4,8 @@
 #include "GoogleSheetsApi.h"
 #include "GSBMenuExtender.h"
 #include "GSBToolBarExtender.h"
+#include "GSBUtils.h"
+#include "GoogleSheetsBridgeLogChannels.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 
@@ -59,9 +61,7 @@ void FGoogleSheetsBridgeModule::SyncAssetsWithGoogleSheets(UClass* Class)
 			    continue;
 			}
 
-			FGoogleSheetsApiParams_GET Params(Asset);
-
-			FGoogleSheetsApi::SendRequest_GET(Params, FGoogleSheetsApi::OnResponse_GET(Asset));
+			GSB::GenericRequest_GET(Asset);
 		}
 	});
 }

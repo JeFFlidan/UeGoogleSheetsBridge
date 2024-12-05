@@ -2,6 +2,8 @@
 
 #include "GSBMenuExtender.h"
 #include "GoogleSheetsApi.h"
+#include "GSBUtils.h"
+#include "GSBConstants.h"
 #include "GoogleSheetsBridgeLogChannels.h"
 
 #include "ContentBrowserModule.h"
@@ -74,31 +76,40 @@ void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 		);
 	}
 	
-	MenuBuilder.AddMenuEntry(
-		FText::FromString("Export to Default Google Sheets"),
-		FText::FromString("Export to Default Google Sheets"),
-		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateRaw(this, &FGSBMenuExtenderBase::ExportToGoogleSheets))
-	);
-}
+	MenuBuilder.AddMenuSeparator();
 
-void FGSBMenuExtenderBase::ExportToGoogleSheets()
-{
-	FGoogleSheetsApiParams_POST Params(SelectedAsset);
-	if (SelectedAsset.ExportToCSVString(Params.Content))
-	{
-		FOnResponse OnResponse;
-		OnResponse.BindLambda([this](FString Content)
+	MenuBuilder.AddMenuEntry(
+		FText::FromString(GSB::Constants::SyncWithButtonName),
+		FText::FromString(GSB::Constants::SyncWithTooltip),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateLambda([this]
 		{
-			// Because of bug with bad request response, does not work correctly for now
-			UE_LOG(LogGoogleSheetsBridge, Verbose, TEXT("%s"), *Content);
-		});
-		FGoogleSheetsApi::SendRequest_POST(Params, OnResponse);
-	}
-	else
-	{
-		UE_LOG(LogGoogleSheetsBridge, Error, TEXT("POST params are invalid."));
-	}
+			GSB::GenericRequest_GET(SelectedAsset);
+		}), FCanExecuteAction::CreateLambda([this]()->bool
+		{
+			return GSB::IsSyncButtonExecutable(SelectedAsset);
+		}))
+	);
+	
+	MenuBuilder.AddMenuEntry(
+		FText::FromString(GSB::Constants::ExportToDefaultButtonName),
+		FText::FromString(GSB::Constants::ExportToDefaultTooltip),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateLambda([this]
+		{
+			GSB::GenericRequest_POST(SelectedAsset);
+		}))
+	);
+
+	MenuBuilder.AddMenuEntry(
+		FText::FromString(GSB::Constants::ExportToCustomButtonName),
+		FText::FromString(GSB::Constants::ExportToDefaultTooltip),
+		FSlateIcon(),
+		FUIAction(FExecuteAction::CreateLambda([this]
+		{
+			GSB::CreateExportWindow(SelectedAsset);
+		}))
+	);
 }
 
 void FGSBMenuExtenderBase::OpenExplorerToSaveCSV()

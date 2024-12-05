@@ -1,6 +1,7 @@
 ﻿// Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #include "GSBAsset.h"
+#include "GSBUtils.h"
 #include "GoogleSheetsBridgeSettings.h"
 
 #include "EditorAssetLibrary.h"

@@ -27,7 +27,7 @@ protected:
 	bool bAddMenuEntry_ImportFromCSV{false};
 
 	TSharedRef<FExtender> ExtendContextMenu(const TArray<FAssetData>& AssetDataList);
-	void ExportToGoogleSheets();
+	
 	void OpenExplorerToSaveCSV();
 	void OpenExplorerToImportCSV();
 

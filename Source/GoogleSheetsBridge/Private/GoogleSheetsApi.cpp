@@ -50,26 +50,6 @@ void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Param
 	Request->ProcessRequest();
 }
 
-FOnResponse FGoogleSheetsApi::OnResponse_GET(FGSBAsset Asset)
-{
-	FOnResponse OnResponse;
-	OnResponse.BindLambda([Asset](FString Content) mutable
-	{
-		if (Content.IsEmpty())
-		{
-			return;
-		}
-				
-		if (!Asset.ImportFromCSVString(Content))
-		{
-			UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Failed to import %s from CSV %s"),
-				*Asset.GetFName().ToString(), *Content);
-		}
-	});
-
-	return OnResponse;
-}
-
 bool FGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	if (!bWasSuccessful)

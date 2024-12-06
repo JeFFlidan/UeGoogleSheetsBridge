@@ -1,9 +1,12 @@
 // Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #include "GoogleSheetsApi.h"
+
 #include "GoogleSheetsBridgeSettings.h"
 #include "GoogleSheetsBridgeLogChannels.h"
+#include "GSBPendingNotification.h"
 #include "GSBAsset.h"
+#include "GSBUtils.h"
 
 FGoogleSheetsApiParams_GET::FGoogleSheetsApiParams_GET(FGSBAsset InAsset)
 	: Asset(InAsset)
@@ -24,18 +27,39 @@ FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(FGSBAsset InAsset)
 
 void FGoogleSheetsApi::SendRequest_GET(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived)
 {
+	if (!FGSBUtils::AreSettingsValid(Params.Asset))
+	{
+		return;
+	}
+	
 	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
 
 	Request->SetVerb("GET");
 	Request->SetURL(Params.GetUrl());
+	
+	TSharedPtr<FGSBPendingNotification> Notification = MakeShared<FGSBPendingNotification>();
 
-	BindResponseDelegate(Request, OnResponseReceived);
+	if (bEnableNotification)
+	{
+		Notification->SetAssetName(Params.Asset.GetFName().ToString());
+		Notification->SetPendingMessageTemplate(TEXT("Synchronizing %s with Google Spreadsheet"));
+		Notification->SetResultMessageTemplate(TEXT("Synchronization with Google Spreadsheet for %s)"));
+
+		Notification->ShowPendingNotification();
+	}
+	
+	BindResponseDelegate(Request,OnResponseReceived, Notification);
 	
 	Request->ProcessRequest();
 }
 
 void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived)
 {
+	if (!FGSBUtils::AreSettingsValid(Params.Asset))
+	{
+		return;
+	}
+	
 	TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
 	
 	Request->SetVerb("POST");
@@ -44,8 +68,19 @@ void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Param
 	
 	Request->SetHeader(TEXT("Content-Type"), TEXT("text/csv; charset=utf-8"));
 	Request->SetHeader(TEXT("Accepts"), TEXT("text/plain"));
+
+	TSharedPtr<FGSBPendingNotification> Notification = MakeShared<FGSBPendingNotification>();
+
+	if (bEnableNotification)
+	{
+		Notification->SetAssetName(Params.Asset.GetFName().ToString());
+		Notification->SetPendingMessageTemplate(TEXT("Sending %s data to Google Spreadsheet."));
+		Notification->SetResultMessageTemplate(TEXT("Sending %s data to Google Spreadsheet"));
+
+		Notification->ShowPendingNotification();
+	}
 	
-	BindResponseDelegate(Request, OnResponseReceived);
+	BindResponseDelegate(Request,OnResponseReceived, Notification);
 	
 	Request->ProcessRequest();
 }
@@ -75,16 +110,23 @@ bool FGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSucce
 	return false;
 }
 
-void FGoogleSheetsApi::BindResponseDelegate(TSharedRef<IHttpRequest> Request, FOnResponse OnResponseReceived)
+void FGoogleSheetsApi::BindResponseDelegate(
+	TSharedRef<IHttpRequest> Request,
+	FOnResponse OnResponseReceived,
+	TSharedPtr<FGSBPendingNotification> Notification)
 {
-	Request->OnProcessRequestComplete().BindLambda([OnResponseReceived]
+	Request->OnProcessRequestComplete().BindLambda([OnResponseReceived, Notification]
 		(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 	{
 		if (!IsResponseValid(Response, bWasSuccessful))
 		{
+			Notification->ShowFailNotification();
+			
 			return;
 		}
 
+		Notification->ShowSuccessNotification();
+		
 		OnResponseReceived.Execute(Response->GetContentAsString());
 	});
 }

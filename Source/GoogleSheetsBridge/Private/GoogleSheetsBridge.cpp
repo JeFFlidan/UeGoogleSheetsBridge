@@ -27,9 +27,13 @@ void FGoogleSheetsBridgeModule::StartupModule()
 
 	FGSBToolBarExtender::Initialize();
 
+	FGoogleSheetsApi::SetEnableNotifications(false);
+	
 	SyncAssetsWithGoogleSheets(UDataAsset::StaticClass());
 	SyncAssetsWithGoogleSheets(UDataTable::StaticClass());
 	SyncAssetsWithGoogleSheets(UCurveTable::StaticClass());
+
+	FGoogleSheetsApi::SetEnableNotifications(true);
 }
 
 void FGoogleSheetsBridgeModule::ShutdownModule()
@@ -61,7 +65,7 @@ void FGoogleSheetsBridgeModule::SyncAssetsWithGoogleSheets(UClass* Class)
 			    continue;
 			}
 
-			GSB::GenericRequest_GET(Asset);
+			FGSBUtils::GenericRequest_GET(Asset);
 		}
 	});
 }

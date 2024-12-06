@@ -21,17 +21,17 @@ bool IsAssetClassValid(UClass* AssetClass)
 
 void SyncWithGoogleSheets(UObject* Asset)
 {
-	GSB::GenericRequest_GET(Asset);
+	FGSBUtils::GenericRequest_GET(Asset);
 }
 
 void ExportToDefaultSpreadsheet(UObject* Asset)
 {
-	GSB::GenericRequest_POST(Asset);
+	FGSBUtils::GenericRequest_POST(Asset);
 }
 
 void ExportToCustomSpreadsheet(UObject* Asset)
 {
-	GSB::CreateExportWindow(Asset);
+	FGSBUtils::CreateExportWindow(Asset);
 }
 
 TSharedRef<FExtender> GetToolBarExtender(UObject* Asset)
@@ -51,11 +51,11 @@ TSharedRef<FExtender> GetToolBarExtender(UObject* Asset)
 					SyncWithGoogleSheets(Asset);
 				}), FCanExecuteAction::CreateLambda([Asset]()->bool
 				{
-					return GSB::IsSyncButtonExecutable(Asset);
+					return FGSBUtils::IsSyncButtonExecutable(Asset);
 				})),
 				NAME_None,
-				FText::FromString(GSB::Constants::SyncWithButtonName),
-				FText::FromString(GSB::Constants::SyncWithTooltip),
+				FText::FromString(GSB::Constants::SyncWithSpreadsheetButtonName),
+				FText::FromString(GSB::Constants::SyncWithSpreadsheetTooltip),
 				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Refresh")
 			);
 
@@ -65,8 +65,8 @@ TSharedRef<FExtender> GetToolBarExtender(UObject* Asset)
 					ExportToDefaultSpreadsheet(Asset);
 				})),
 				NAME_None,
-				FText::FromString(GSB::Constants::ExportToDefaultButtonName),
-				FText::FromString(GSB::Constants::ExportToDefaultTooltip),
+				FText::FromString(GSB::Constants::ExportToSpreadsheetButtonName),
+				FText::FromString(GSB::Constants::ExportToSpreadsheetTooltip),
 				FSlateIcon()
 			);
 
@@ -76,8 +76,8 @@ TSharedRef<FExtender> GetToolBarExtender(UObject* Asset)
 					ExportToCustomSpreadsheet(Asset);
 				})),
 				NAME_None,
-				FText::FromString(GSB::Constants::ExportToCustomButtonName),
-				FText::FromString(GSB::Constants::ExportToCustomTooltip),
+				FText::FromString(GSB::Constants::ChangeSpreadsheetIDButtonName),
+				FText::FromString(GSB::Constants::ChangeSpreadsheetIDTooltip),
 				FSlateIcon()
 			);
 		})

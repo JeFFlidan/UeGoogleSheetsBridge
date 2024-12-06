@@ -15,4 +15,7 @@ class SGSBExportSpreadsheetWidget : public SCompoundWidget
 
 public:
 	void Construct(const FArguments& InArgs);
+
+private:
+	FString SpreadsheetID;
 };

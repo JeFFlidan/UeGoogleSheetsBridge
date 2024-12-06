@@ -24,19 +24,19 @@ void SGSBExportSpreadsheetWidget::Construct(const FArguments& InArgs)
 						SNew(SEditableTextBox)
 						.MinDesiredWidth(700)
 						.Text(FText::FromString(Asset.FindSpreadsheetId()))
-						.OnTextChanged_Lambda([Asset](const FText& Id) mutable
+						.OnTextChanged_Lambda([this](const FText& Id) mutable
 						{
-							Asset.SetSpreadsheetId(Id.ToString());
+							SpreadsheetID = Id.ToString();
 						})
 					]
 			]
 			+ SVerticalBox::Slot().Padding(10).HAlign(HAlign_Right).VAlign(VAlign_Center)
 			[
 				SNew(SButton)
-				.Text(FText::FromString("Export"))
-				.OnClicked_Lambda([Asset, Window]()->FReply
+				.Text(FText::FromString("Change"))
+				.OnClicked_Lambda([this, Asset, Window]() mutable ->FReply
 				{
-					GSB::GenericRequest_POST(Asset);
+					Asset.SetSpreadsheetId(SpreadsheetID);
 					if (Window.IsValid())
 					{
 						Window->RequestDestroyWindow();

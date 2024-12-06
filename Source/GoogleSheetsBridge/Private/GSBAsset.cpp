@@ -41,17 +41,17 @@ bool FGSBAsset::ExportToCSVString(FString& OutString)
 {
 	if (Asset->GetClass()->IsChildOf<UDataTable>())
 	{
-		return GSB::AssetToCsvString(CastChecked<UDataTable>(Asset), OutString);
+		return FGSBUtils::AssetToCsvString(CastChecked<UDataTable>(Asset), OutString);
 	}
 
 	if (Asset->GetClass()->IsChildOf<UCurveTable>())
 	{
-		return GSB::AssetToCsvString(CastChecked<UCurveTable>(Asset), OutString);
+		return FGSBUtils::AssetToCsvString(CastChecked<UCurveTable>(Asset), OutString);
 	}
 
 	if (Asset->GetClass()->IsChildOf<UDataAsset>())
 	{
-		return GSB::AssetToCsvString(CastChecked<UDataAsset>(Asset), OutString);
+		return FGSBUtils::AssetToCsvString(CastChecked<UDataAsset>(Asset), OutString);
 	}
 
 	return false;
@@ -61,17 +61,17 @@ bool FGSBAsset::ImportFromCSVString(const FString& InCSVData)
 {
 	if (UDataTable* DataTable = Cast<UDataTable>(Asset))
 	{
-		return GSB::CSVStringToAsset(DataTable, InCSVData);
+		return FGSBUtils::CSVStringToAsset(DataTable, InCSVData);
 	}
 
 	if (Asset->GetClass()->IsChildOf<UCurveTable>())
 	{
-		return GSB::CSVStringToAsset(CastChecked<UCurveTable>(Asset), InCSVData);
+		return FGSBUtils::CSVStringToAsset(CastChecked<UCurveTable>(Asset), InCSVData);
 	}
 
 	if (Asset->GetClass()->IsChildOf<UDataAsset>())
 	{
-		return GSB::CSVStringToAsset(CastChecked<UDataAsset>(Asset), InCSVData);
+		return FGSBUtils::CSVStringToAsset(CastChecked<UDataAsset>(Asset), InCSVData);
 	}
 
 	return false;

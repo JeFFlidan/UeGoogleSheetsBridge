@@ -79,35 +79,35 @@ void FGSBMenuExtenderBase::AddMenuEntries(FMenuBuilder& MenuBuilder)
 	MenuBuilder.AddMenuSeparator();
 
 	MenuBuilder.AddMenuEntry(
-		FText::FromString(GSB::Constants::SyncWithButtonName),
-		FText::FromString(GSB::Constants::SyncWithTooltip),
+		FText::FromString(GSB::Constants::SyncWithSpreadsheetButtonName),
+		FText::FromString(GSB::Constants::SyncWithSpreadsheetTooltip),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateLambda([this]
 		{
-			GSB::GenericRequest_GET(SelectedAsset);
+			FGSBUtils::GenericRequest_GET(SelectedAsset);
 		}), FCanExecuteAction::CreateLambda([this]()->bool
 		{
-			return GSB::IsSyncButtonExecutable(SelectedAsset);
+			return FGSBUtils::IsSyncButtonExecutable(SelectedAsset);
 		}))
 	);
 	
 	MenuBuilder.AddMenuEntry(
-		FText::FromString(GSB::Constants::ExportToDefaultButtonName),
-		FText::FromString(GSB::Constants::ExportToDefaultTooltip),
+		FText::FromString(GSB::Constants::ExportToSpreadsheetButtonName),
+		FText::FromString(GSB::Constants::ExportToSpreadsheetTooltip),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateLambda([this]
 		{
-			GSB::GenericRequest_POST(SelectedAsset);
+			FGSBUtils::GenericRequest_POST(SelectedAsset);
 		}))
 	);
 
 	MenuBuilder.AddMenuEntry(
-		FText::FromString(GSB::Constants::ExportToCustomButtonName),
-		FText::FromString(GSB::Constants::ExportToDefaultTooltip),
+		FText::FromString(GSB::Constants::ChangeSpreadsheetIDButtonName),
+		FText::FromString(GSB::Constants::ExportToSpreadsheetTooltip),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateLambda([this]
 		{
-			GSB::CreateExportWindow(SelectedAsset);
+			FGSBUtils::CreateExportWindow(SelectedAsset);
 		}))
 	);
 }

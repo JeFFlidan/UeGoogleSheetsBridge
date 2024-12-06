@@ -6,18 +6,18 @@
 
 namespace GSB::Constants
 {
-	const FString SyncWithButtonName = "Sync with Google Sheet";
-	const FString ExportToDefaultButtonName = "Export to Default Google Spreadsheet";
-	const FString ExportToCustomButtonName = "Export to Custom Google Spreadsheet";
+	const FString SyncWithSpreadsheetButtonName = "Sync with Google Spreadsheet";
+	const FString ExportToSpreadsheetButtonName = "Export to Google Spreadsheet";
+	const FString ChangeSpreadsheetIDButtonName = "Change Google Spreadsheet ID";
 
-	const FString SyncWithTooltip = "Updates the selected asset from Google Sheet that was previously connected to the asset by "
-		"\"Export to Default Google Spreadsheet\" or \"Export to Custom Google Spreadsheet\".";
+	const FString SyncWithSpreadsheetTooltip = "Updates the selected asset from Google Sheet that was previously connected to the asset by "
+		"\"Export to Google Spreadsheet\".";
 
-	const FString ExportToDefaultTooltip = "Exports to Google Spreadsheet whose ID can be configured in \"Google Sheets Bridge\" "
-		"Project Settings (property \"Default Spreadsheet Id\"). The Spreadsheet ID will be stored in the asset metadata, "
-		"so you need to use this button once for the selected asset.";
+	const FString ExportToSpreadsheetTooltip = "Exports Asset data to Google Spreadsheet. If it is a first export to a Google Spreadsheet,"
+		" a new Sheet will be created in the Spreadsheet. If Spreadsheet ID is not configured using \"Change Google Spreadsheet ID\", "
+		"default ID from \"Google Sheets Bridge\" Project Settings will be used (property \"Default Spreadsheet Id\"). "
+		"The Spreadsheet ID is stored in the asset metadata.";
 
-	const FString ExportToCustomTooltip = "Exports to Google Spreadsheet whose ID is chosen by you before exporting. "
-		"The Spreadsheet ID will be stored in the asset metadata. Each export by this button will override the Spreadsheet "
-		"ID in the metadata, so in most cases you need to use it once for the selected asset.";
+	const FString ChangeSpreadsheetIDTooltip = "Configures new Spreadsheet ID that is stored in Asset metadata. This ID will be used"
+		" by \"Export to Google Spreadsheet\".";
 }

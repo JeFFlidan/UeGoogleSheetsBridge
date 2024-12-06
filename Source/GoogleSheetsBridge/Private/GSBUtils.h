@@ -2,92 +2,53 @@
 
 #pragma once
 
-#include "GSBDataAssetCSV.h"
 #include "GSBAsset.h"
-#include "GoogleSheetsBridgeLogChannels.h"
 
 #include "CoreMinimal.h"
-#include "Kismet/DataTableFunctionLibrary.h"
-#include "DataTableEditorUtils.h"
-#include "CurveTableEditorUtils.h"
+#include "Widgets/Notifications/SNotificationList.h"
 
 class SWindow;
 
-namespace GSB
+class FGSBUtils
 {
+public:
 	template<typename AssetType>
-	bool AssetToCsvString(const AssetType* Asset, FString& OutString)
-	{
-		static_assert(!TIsSame<AssetType, AssetType>::Value, "Type is not supported");
-		return false;
-	}
-
-	template<>
-	inline bool AssetToCsvString(const UCurveTable* Asset, FString& OutString)
-	{
-		OutString = Asset->GetTableAsCSV();
-		return !OutString.IsEmpty();
-	}
-
-	template<>
-	inline bool AssetToCsvString(const UDataAsset* Asset, FString& OutString)
-	{
-		return FGSBDataAssetExporterCSV(OutString).WriteDataAsset(Asset);
-	}
-
-	template<>
-	inline bool AssetToCsvString(const UDataTable* Asset, FString& OutString)
-	{
-		return UDataTableFunctionLibrary::ExportDataTableToCSVString(Asset, OutString);
-	}
+	static bool AssetToCsvString(const AssetType* Asset, FString& OutString);
 
 	template<typename AssetType>
-	bool CSVStringToAsset(AssetType* Asset, const FString& CSVData)
-	{
-		static_assert(!TIsSame<AssetType, AssetType>::Value, "Type is not supported");
-		return false;
-	}
+	static bool CSVStringToAsset(AssetType* Asset, const FString& CSVData);
 
-	template<>
-	inline bool CSVStringToAsset(UCurveTable* Asset, const FString& CSVData)
-	{
-		TArray<FString> Errors = Asset->CreateTableFromCSVString(CSVData);
-
-		if (!Errors.IsEmpty())
-		{
-			for (const FString& Error : Errors)
-			{
-				UE_LOG(LogGoogleSheetsBridge, Error, TEXT("%s"), *Error);
-			}
-
-			return false;
-		}
-
-		FCurveTableEditorUtils::BroadcastPostChange(Asset, FCurveTableEditorUtils::ECurveTableChangeInfo::RowList);
-
-		return true;
-	}
-
-	template<>
-	inline bool CSVStringToAsset(UDataAsset* Asset, const FString& CSVData)
-	{
-		return FGSBDataAssetImporterCSV(Asset, CSVData).ReadDataAsset();
-	}
-
-	template<>
-	inline bool CSVStringToAsset(UDataTable* Asset, const FString& CSVData)
-	{
-		bool bResult = UDataTableFunctionLibrary::FillDataTableFromCSVString(Asset, CSVData);
-		FDataTableEditorUtils::BroadcastPostChange(Asset, FDataTableEditorUtils::EDataTableChangeInfo::RowList);
-		return bResult;
-	}
-
-	inline bool IsSyncButtonExecutable(FGSBAsset Asset)
+	static bool IsSyncButtonExecutable(FGSBAsset Asset)
 	{
 		return !Asset.FindSpreadsheetId().IsEmpty();
 	}
 
-	void GenericRequest_GET(FGSBAsset Asset);
-	void GenericRequest_POST(FGSBAsset Asset);
-	void CreateExportWindow(FGSBAsset Asset);
-}
+	static bool AreSettingsValid(FGSBAsset Asset);
+
+	static void GenericRequest_GET(FGSBAsset Asset);
+	static void GenericRequest_POST(FGSBAsset Asset);
+	static void CreateExportWindow(FGSBAsset Asset);
+
+	static void ShowNotification_Success(
+		const FString& Message,
+		float ExpireDuration = 3.0f,
+		float FadeInDuration = 0.5f,
+		float FadeOutDuration = 0.5f);
+
+	static void ShowNotification_Fail(
+		const FString& Message,
+		float ExpireDuration = 3.0f,
+		float FadeInDuration = 0.5f,
+		float FadeOutDuration = 0.5f);
+
+	static TSharedPtr<SNotificationItem> ShowNotification_Pending(
+		const FString& Message,
+		float ExpireDuration = 3.0f,
+		float FadeInDuration = 0.5f,
+		float FadeOutDuration = 0.5f);
+
+	static void CloseNotification_Pending(
+		const TSharedPtr<SNotificationItem>& PendingNotification,
+		const FString& NewMessage,
+		SNotificationItem::ECompletionState NewCompletionState);
+};

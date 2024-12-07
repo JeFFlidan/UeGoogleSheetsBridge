@@ -26,6 +26,7 @@ namespace GSB
 	
 		bool IsCollectionElementPropertyTypeValid(FProperty* Property) const;
 		bool IsPropertySerializable(FProperty* Property) const;
+		bool IsMapKeyValid(const FMapProperty* MapProperty, const UDataAsset* DataAsset) const;
 	};
 }
 
@@ -47,6 +48,7 @@ private:
 	virtual bool HandleSetData(FSetProperty* SetProperty) override;
 	
 	bool WriteHeader(FProperty* ElementProperty);
+	void WriteRaw(const void* ElementPtr);
 	void WritePropertyValue(FProperty* Property, const void* PropertyValue);
 };
 
@@ -67,4 +69,8 @@ private:
 	virtual bool HandleArrayData(FArrayProperty* ArrayProperty) override;
 	virtual bool HandleMapData(FMapProperty* MapProperty) override;
 	virtual bool HandleSetData(FSetProperty* SetProperty) override;
+
+	void FillCell(void* ElementPtr, int32 CellIdx, const TArray<const TCHAR*>& Cells);
+	bool IsCellCountValid(int32 CellCount, int32 Index) const;
+	bool IsRowCountValid(int32 RowFromCSVCount, int32 ElementCount) const;
 };

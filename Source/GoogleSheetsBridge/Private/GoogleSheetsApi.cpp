@@ -39,8 +39,9 @@ void FGoogleSheetsApi::SendRequest_GET(const FGoogleSheetsApiParams_GET& Params,
 	
 	TSharedPtr<FGSBPendingNotification> Notification = MakeShared<FGSBPendingNotification>();
 
-	if (bEnableNotification)
+	if (bEnableNotifications)
 	{
+		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Create notification"))
 		Notification->SetAssetName(Params.Asset.GetFName().ToString());
 		Notification->SetPendingMessageTemplate(TEXT("Synchronizing %s with Google Spreadsheet"));
 		Notification->SetResultMessageTemplate(TEXT("Synchronization with Google Spreadsheet for %s)"));
@@ -71,7 +72,7 @@ void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Param
 
 	TSharedPtr<FGSBPendingNotification> Notification = MakeShared<FGSBPendingNotification>();
 
-	if (bEnableNotification)
+	if (bEnableNotifications)
 	{
 		Notification->SetAssetName(Params.Asset.GetFName().ToString());
 		Notification->SetPendingMessageTemplate(TEXT("Sending %s data to Google Spreadsheet."));

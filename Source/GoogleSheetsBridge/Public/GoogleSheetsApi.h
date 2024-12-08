@@ -31,11 +31,9 @@ public:
 	static void SendRequest_GET(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived);
 	static void SendRequest_POST(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived);
 
-	static void SetEnableNotifications(bool bEnable) { bEnableNotification = bEnable; }
+	inline static bool bEnableNotifications{false};
 
 private:
-	inline static bool bEnableNotification{true};
-	
 	static bool IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful);
 	static void BindResponseDelegate(
 		TSharedRef<IHttpRequest> Request,

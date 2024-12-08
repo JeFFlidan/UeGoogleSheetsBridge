@@ -25,8 +25,8 @@ public:
 
 	static bool AreSettingsValid(FGSBAsset Asset);
 
-	static void GenericRequest_GET(FGSBAsset Asset);
-	static void GenericRequest_POST(FGSBAsset Asset);
+	static void GenericRequest_GET(FGSBAsset Asset, bool bEnableNotifications = true);
+	static void GenericRequest_POST(FGSBAsset Asset, bool bEnableNotifications = true);
 	static void CreateExportWindow(FGSBAsset Asset);
 
 	static void ShowNotification_Success(

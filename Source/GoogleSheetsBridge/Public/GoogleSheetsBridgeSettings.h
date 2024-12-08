@@ -15,14 +15,17 @@ class GOOGLESHEETSBRIDGE_API UGoogleSheetsBridgeSettings : public UDeveloperSett
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General", meta = (ClampMin = 1, ClampMax = 65535))
-	int32 ServerPort;
-
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
 	FString DefaultSpreadsheetId;
 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Advanced")
 	FString ApiScriptId;
+	
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Experimental", meta = (ClampMin = 1, ClampMax = 65535))
+	int32 ServerPort;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Experimental")
+	bool bEnableServer;
 
 	UGoogleSheetsBridgeSettings(const FObjectInitializer& Initializer);
 };

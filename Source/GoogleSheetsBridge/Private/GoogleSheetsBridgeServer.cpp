@@ -35,6 +35,11 @@ void UGoogleSheetsBridgeServer::Deinitialize()
 
 void UGoogleSheetsBridgeServer::StartServer()
 {
+	if (!GetDefault<UGoogleSheetsBridgeSettings>()->bEnableServer)
+	{
+		return;
+	}
+	
 	FHttpServerModule& HttpServerModule = FHttpServerModule::Get();
 	TSharedPtr<IHttpRouter> HttpRouter = HttpServerModule.GetHttpRouter(Settings->ServerPort);
 

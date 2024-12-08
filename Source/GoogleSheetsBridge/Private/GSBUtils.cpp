@@ -109,8 +109,10 @@ bool FGSBUtils::AreSettingsValid(FGSBAsset Asset)
 	return true;
 }
 
-void FGSBUtils::GenericRequest_GET(FGSBAsset Asset)
+void FGSBUtils::GenericRequest_GET(FGSBAsset Asset, bool bEnableNotifications)
 {
+	FGoogleSheetsApi::bEnableNotifications = bEnableNotifications;
+	
 	FGoogleSheetsApiParams_GET Params(Asset);
 
 	FOnResponse OnResponse;
@@ -131,8 +133,10 @@ void FGSBUtils::GenericRequest_GET(FGSBAsset Asset)
 	FGoogleSheetsApi::SendRequest_GET(Params, OnResponse);
 }
 
-void FGSBUtils::GenericRequest_POST(FGSBAsset Asset)
+void FGSBUtils::GenericRequest_POST(FGSBAsset Asset, bool bEnableNotifications)
 {
+	FGoogleSheetsApi::bEnableNotifications = bEnableNotifications;
+	
 	FGoogleSheetsApiParams_POST Params(Asset);
 	if (Asset.ExportToCSVString(Params.Content))
 	{

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
 #include "GoogleSheetsBridgeSettings.generated.h"
 

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "GSBMenuExtender.h"
-#include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
+
+class FGSBMenuExtenderBase;
 
 class FGoogleSheetsBridgeModule : public IModuleInterface
 {

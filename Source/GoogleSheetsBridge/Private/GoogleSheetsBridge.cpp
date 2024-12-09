@@ -1,7 +1,6 @@
 // Copyright Kyrylo Zaverukha. All Rights Reserved.
 
 #include "GoogleSheetsBridge.h"
-#include "GoogleSheetsApi.h"
 #include "GSBMenuExtender.h"
 #include "GSBToolBarExtender.h"
 #include "GSBUtils.h"

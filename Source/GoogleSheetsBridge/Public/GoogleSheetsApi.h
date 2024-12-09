@@ -34,6 +34,7 @@ public:
 	inline static bool bEnableNotifications{false};
 
 private:
+	static bool AreAssetAndSettingsValid(FGSBAsset Asset);
 	static bool IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful);
 	static void BindResponseDelegate(
 		TSharedRef<IHttpRequest> Request,

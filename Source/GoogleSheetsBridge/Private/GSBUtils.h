@@ -51,4 +51,6 @@ public:
 		const TSharedPtr<SNotificationItem>& PendingNotification,
 		const FString& NewMessage,
 		SNotificationItem::ECompletionState NewCompletionState);
+
+	static bool IsAssetLockedByCurrentUser(UObject* Asset);
 };

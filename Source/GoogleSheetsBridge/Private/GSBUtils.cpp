@@ -8,16 +8,13 @@
 #include "GoogleSheetsBridgeLogChannels.h"
 #include "GoogleSheetsBridgeSettings.h"
 
-#include "Widgets/Docking/SDockTab.h"
-#include "Widgets/Layout/SBox.h"
-#include "Widgets/Text/STextBlock.h"
-#include "Widgets/Input/SEditableTextBox.h"
-#include "Widgets/Input/SButton.h"
 #include "Editor/MainFrame/Public/Interfaces/IMainFrameModule.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "CurveTableEditorUtils.h"
 #include "DataTableEditorUtils.h"
 #include "Kismet/DataTableFunctionLibrary.h"
+#include "ISourceControlModule.h"
+#include "ISourceControlProvider.h"
 
 template<typename AssetType>
 bool FGSBUtils::AssetToCsvString(const AssetType* Asset, FString& OutString)
@@ -256,4 +253,42 @@ void FGSBUtils::CloseNotification_Pending(
 	PendingNotification->SetText(FText::FromString(NewMessage));
 	PendingNotification->SetCompletionState(NewCompletionState);
 	PendingNotification->ExpireAndFadeout();
+}
+
+bool FGSBUtils::IsAssetLockedByCurrentUser(UObject* Asset)
+{
+	ISourceControlModule& SourceControlModule = ISourceControlModule::Get();
+
+	if (!SourceControlModule.IsEnabled())
+	{
+		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Source Control is not enabled."));
+		return true;
+	}
+	
+	ISourceControlProvider& SourceControlProvider = SourceControlModule.GetProvider();
+
+	if (!SourceControlProvider.IsAvailable())
+	{
+		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Source Control Provider is not available."));
+		return true;
+	}
+	
+	FString FilePath = FPackageName::LongPackageNameToFilename(FSoftObjectPath(Asset).ToString(), TEXT(".uasset"));
+	TSharedPtr<ISourceControlState> SourceControlState = SourceControlProvider.GetState(FilePath, EStateCacheUsage::Use);
+
+	if (!SourceControlState.IsValid())
+	{
+		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Source Control State for file %s is not valid."), *FilePath)
+		return true;
+	}
+
+	if (SourceControlState->IsCheckedOut())
+	{
+		return true;
+	}
+
+	ShowNotification_Fail(
+		FString::Printf(TEXT("Asset %s is not locked by current user."), *Asset->GetName()));
+	
+	return false;
 }

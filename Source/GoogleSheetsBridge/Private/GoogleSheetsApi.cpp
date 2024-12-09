@@ -27,7 +27,7 @@ FGoogleSheetsApiParams_POST::FGoogleSheetsApiParams_POST(FGSBAsset InAsset)
 
 void FGoogleSheetsApi::SendRequest_GET(const FGoogleSheetsApiParams_GET& Params, FOnResponse OnResponseReceived)
 {
-	if (!FGSBUtils::AreSettingsValid(Params.Asset))
+	if (!AreAssetAndSettingsValid(Params.Asset))
 	{
 		return;
 	}
@@ -41,7 +41,6 @@ void FGoogleSheetsApi::SendRequest_GET(const FGoogleSheetsApiParams_GET& Params,
 
 	if (bEnableNotifications)
 	{
-		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Create notification"))
 		Notification->SetAssetName(Params.Asset.GetFName().ToString());
 		Notification->SetPendingMessageTemplate(TEXT("Synchronizing %s with Google Spreadsheet"));
 		Notification->SetResultMessageTemplate(TEXT("Synchronization with Google Spreadsheet for %s)"));
@@ -56,7 +55,7 @@ void FGoogleSheetsApi::SendRequest_GET(const FGoogleSheetsApiParams_GET& Params,
 
 void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Params, FOnResponse OnResponseReceived)
 {
-	if (!FGSBUtils::AreSettingsValid(Params.Asset))
+	if (!AreAssetAndSettingsValid(Params.Asset))
 	{
 		return;
 	}
@@ -84,6 +83,16 @@ void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Param
 	BindResponseDelegate(Request,OnResponseReceived, Notification);
 	
 	Request->ProcessRequest();
+}
+
+bool FGoogleSheetsApi::AreAssetAndSettingsValid(FGSBAsset Asset)
+{
+	if (!FGSBUtils::AreSettingsValid(Asset) || !FGSBUtils::IsAssetLockedByCurrentUser(Asset.GetHandle()))
+	{
+		return false;
+	}
+
+	return true;
 }
 
 bool FGoogleSheetsApi::IsResponseValid(FHttpResponsePtr Response, bool bWasSuccessful)

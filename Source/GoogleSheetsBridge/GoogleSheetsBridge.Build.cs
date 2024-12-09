@@ -46,7 +46,8 @@ public class GoogleSheetsBridge : ModuleRules
 				"UnrealEd",
 				"DataTableEditor",
 				"CurveTableEditor",
-				"AssetManagerEditor"
+				"AssetManagerEditor",
+				"SourceControl"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

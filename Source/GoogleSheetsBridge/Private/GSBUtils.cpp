@@ -16,40 +16,22 @@
 #include "ISourceControlModule.h"
 #include "ISourceControlProvider.h"
 
-template<typename AssetType>
-bool FGSBUtils::AssetToCsvString(const AssetType* Asset, FString& OutString)
-{
-	static_assert(!TIsSame<AssetType, AssetType>::Value, "Type is not supported");
-	return false;
-}
-
-template<>
 bool FGSBUtils::AssetToCsvString(const UCurveTable* Asset, FString& OutString)
 {
 	OutString = Asset->GetTableAsCSV();
 	return !OutString.IsEmpty();
 }
 
-template<>
 bool FGSBUtils::AssetToCsvString(const UDataAsset* Asset, FString& OutString)
 {
 	return FGSBDataAssetExporterCSV(OutString).WriteDataAsset(Asset);
 }
 
-template<>
 bool FGSBUtils::AssetToCsvString(const UDataTable* Asset, FString& OutString)
 {
 	return UDataTableFunctionLibrary::ExportDataTableToCSVString(Asset, OutString);
 }
 
-template<typename AssetType>
-bool FGSBUtils::CSVStringToAsset(AssetType* Asset, const FString& CSVData)
-{
-	static_assert(!TIsSame<AssetType, AssetType>::Value, "Type is not supported");
-	return false;
-}
-
-template<>
 bool FGSBUtils::CSVStringToAsset(UCurveTable* Asset, const FString& CSVData)
 {
 	TArray<FString> Errors = Asset->CreateTableFromCSVString(CSVData);
@@ -69,13 +51,11 @@ bool FGSBUtils::CSVStringToAsset(UCurveTable* Asset, const FString& CSVData)
 	return true;
 }
 
-template<>
 bool FGSBUtils::CSVStringToAsset(UDataAsset* Asset, const FString& CSVData)
 {
 	return FGSBDataAssetImporterCSV(Asset, CSVData).ReadDataAsset();
 }
 
-template<>
 bool FGSBUtils::CSVStringToAsset(UDataTable* Asset, const FString& CSVData)
 {
 	bool bResult = UDataTableFunctionLibrary::FillDataTableFromCSVString(Asset, CSVData);

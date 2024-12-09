@@ -12,11 +12,13 @@ class SWindow;
 class FGSBUtils
 {
 public:
-	template<typename AssetType>
-	static bool AssetToCsvString(const AssetType* Asset, FString& OutString);
+	static bool AssetToCsvString(const UCurveTable* Asset, FString& OutString);
+	static bool AssetToCsvString(const UDataAsset* Asset, FString& OutString);
+	static bool AssetToCsvString(const UDataTable* Asset, FString& OutString);
 
-	template<typename AssetType>
-	static bool CSVStringToAsset(AssetType* Asset, const FString& CSVData);
+	static bool CSVStringToAsset(UCurveTable* Asset, const FString& CSVData);
+	static bool CSVStringToAsset(UDataAsset* Asset, const FString& CSVData);
+	static bool CSVStringToAsset(UDataTable* Asset, const FString& CSVData);
 
 	static bool IsSyncButtonExecutable(FGSBAsset Asset)
 	{

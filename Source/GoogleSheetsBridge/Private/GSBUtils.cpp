@@ -262,13 +262,13 @@ bool FGSBUtils::IsAssetLockedByCurrentUser(UObject* Asset)
 		return true;
 	}
 
-	if (SourceControlState->IsCheckedOut())
+	if (SourceControlState->IsCheckedOutOther())
 	{
-		return true;
-	}
+		ShowNotification_Fail(
+			FString::Printf(TEXT("Asset %s is not locked by current user."), *Asset->GetName()));
 
-	ShowNotification_Fail(
-		FString::Printf(TEXT("Asset %s is not locked by current user."), *Asset->GetName()));
+		return false;
+	}
 	
-	return false;
+	return true;
 }

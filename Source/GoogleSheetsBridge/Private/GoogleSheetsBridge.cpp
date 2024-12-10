@@ -7,6 +7,7 @@
 #include "GoogleSheetsBridgeLogChannels.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "ISourceControlModule.h"
 
 #define LOCTEXT_NAMESPACE "FGoogleSheetsBridgeModule"
 
@@ -41,26 +42,38 @@ void FGoogleSheetsBridgeModule::ShutdownModule()
 
 void FGoogleSheetsBridgeModule::SyncAssetsWithGoogleSheets(UClass* Class)
 {
-	AsyncTask(ENamedThreads::GameThread, [Class]
+	AsyncTask(ENamedThreads::AnyBackgroundHiPriTask, [Class]
 	{
-		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Started synchronizing %s with Google Sheets"), *Class->GetFName().ToString())
-		
-		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-		IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-		TArray<FAssetData> AssetsData;
-		AssetRegistry.GetAssetsByClass(Class->GetClassPathName(), AssetsData, true);
-
-		for (FAssetData& AssetData : AssetsData)
+		if (FGSBUtils::IsSourceControlStatusUsed())
 		{
-			FGSBAsset Asset(AssetData.GetAsset());
-			
-			if (Asset.FindSpreadsheetId().IsEmpty())
+			ISourceControlModule& SourceControlModule = ISourceControlModule::Get();
+			do
 			{
-			    continue;
-			}
+				
+			} while (!SourceControlModule.IsEnabled());
 
-			FGSBUtils::GenericRequest_GET(Asset, false);
+			AsyncTask(ENamedThreads::GameThread, [Class] 
+			{
+				UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Started synchronizing %s with Google Sheets"), *Class->GetFName().ToString());
+		
+				FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+				IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+				TArray<FAssetData> AssetsData;
+				AssetRegistry.GetAssetsByClass(Class->GetClassPathName(), AssetsData, true);
+
+				for (FAssetData& AssetData : AssetsData)
+				{
+					FGSBAsset Asset(AssetData.GetAsset());
+			
+					if (Asset.FindSpreadsheetId().IsEmpty())
+					{
+						continue;
+					}
+
+					FGSBUtils::GenericRequest_GET(Asset, false);
+				}
+			});
 		}
 	});
 }

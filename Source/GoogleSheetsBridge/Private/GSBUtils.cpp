@@ -235,14 +235,19 @@ void FGSBUtils::CloseNotification_Pending(
 	PendingNotification->ExpireAndFadeout();
 }
 
-bool FGSBUtils::IsAssetLockedByCurrentUser(UObject* Asset)
+bool FGSBUtils::IsAssetLockedByCurrentUser(UObject* Asset, bool bShowNotifications)
 {
+	if (!IsSourceControlStatusUsed())
+	{
+		return true;
+	}
+
 	ISourceControlModule& SourceControlModule = ISourceControlModule::Get();
 
 	if (!SourceControlModule.IsEnabled())
 	{
 		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Source Control is not enabled."));
-		return true;
+		return false;
 	}
 	
 	ISourceControlProvider& SourceControlProvider = SourceControlModule.GetProvider();
@@ -250,25 +255,34 @@ bool FGSBUtils::IsAssetLockedByCurrentUser(UObject* Asset)
 	if (!SourceControlProvider.IsAvailable())
 	{
 		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Source Control Provider is not available."));
-		return true;
+		return false;
 	}
 	
-	FString FilePath = FPackageName::LongPackageNameToFilename(FSoftObjectPath(Asset).ToString(), TEXT(".uasset"));
+	FString FilePath = FPackageName::LongPackageNameToFilename(Asset->GetPackage()->GetName(), TEXT(".uasset"));
 	TSharedPtr<ISourceControlState> SourceControlState = SourceControlProvider.GetState(FilePath, EStateCacheUsage::Use);
 
 	if (!SourceControlState.IsValid())
 	{
 		UE_LOG(LogGoogleSheetsBridge, Display, TEXT("Source Control State for file %s is not valid."), *FilePath)
-		return true;
+		return false;
 	}
 
 	if (SourceControlState->IsCheckedOutOther())
 	{
-		ShowNotification_Fail(
-			FString::Printf(TEXT("Asset %s is not locked by current user."), *Asset->GetName()));
+		if (bShowNotifications)
+		{
+			ShowNotification_Fail(
+				FString::Printf(TEXT("Asset %s is not locked by current user."), *Asset->GetName()));
+		}
 
 		return false;
 	}
-	
+
 	return true;
+}
+
+bool FGSBUtils::IsSourceControlStatusUsed()
+{
+	const UGoogleSheetsBridgeSettings* Settings = GetDefault<UGoogleSheetsBridgeSettings>();
+	return Settings->bCheckRevisionControlStatusForAssets;
 }

@@ -17,8 +17,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
 	FString DefaultSpreadsheetId;
 
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Advanced")
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
 	FString ApiScriptId;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
+	bool bCheckRevisionControlStatusForAssets;
 	
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Experimental", meta = (ClampMin = 1, ClampMax = 65535))
 	int32 ServerPort;

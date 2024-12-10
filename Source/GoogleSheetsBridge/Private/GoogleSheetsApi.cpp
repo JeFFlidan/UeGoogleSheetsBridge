@@ -87,7 +87,7 @@ void FGoogleSheetsApi::SendRequest_POST(const FGoogleSheetsApiParams_POST& Param
 
 bool FGoogleSheetsApi::AreAssetAndSettingsValid(FGSBAsset Asset)
 {
-	if (!FGSBUtils::AreSettingsValid(Asset) || !FGSBUtils::IsAssetLockedByCurrentUser(Asset.GetHandle()))
+	if (!FGSBUtils::AreSettingsValid(Asset) || !FGSBUtils::IsAssetLockedByCurrentUser(Asset.GetHandle(), bEnableNotifications))
 	{
 		return false;
 	}

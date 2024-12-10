@@ -54,5 +54,6 @@ public:
 		const FString& NewMessage,
 		SNotificationItem::ECompletionState NewCompletionState);
 
-	static bool IsAssetLockedByCurrentUser(UObject* Asset);
+	static bool IsAssetLockedByCurrentUser(UObject* Asset, bool bShowNotifications);
+	static bool IsSourceControlStatusUsed();
 };

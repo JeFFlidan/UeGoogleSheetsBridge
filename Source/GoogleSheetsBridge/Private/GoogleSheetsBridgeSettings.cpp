@@ -11,5 +11,6 @@ UGoogleSheetsBridgeSettings::UGoogleSheetsBridgeSettings(const FObjectInitialize
 	
 	ServerPort = 8080;
 	ApiScriptId = "AKfycbxl31lGa1EHUJm0bOyvsSdLq2vNQiURaf46izk7nxWx1-Hz8p1gE_WAtRHvTEoxyMuw";
+	bCheckRevisionControlStatusForAssets = false;
 	bEnableServer = false;
 }
